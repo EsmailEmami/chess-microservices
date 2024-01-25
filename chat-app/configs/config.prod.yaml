@@ -1,0 +1,21 @@
+app:
+  address: 127.0.0.1
+  port: 8004
+
+consul:
+  enable: true
+  ttl: 10
+  check_duration: 7
+  check_id: chat-service-check-alive
+  id: chat-service
+  cluster_name: chess-microservices
+  tags: 
+    - chat-application
+
+database:
+  host: chess-db
+  port: 5432
+  name: chess
+  username: chess
+  password: 12345678
+  sslmode: disable

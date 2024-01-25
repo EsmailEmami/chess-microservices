@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/esmailemami/chess/game/api/routes"
+	"github.com/esmailemami/chess/game/internal/app/game"
 	"github.com/esmailemami/chess/game/pkg/websocket"
 	"github.com/esmailemami/chess/shared/consul"
 	"github.com/esmailemami/chess/shared/middleware"
@@ -25,6 +26,9 @@ var serveCmd = &cobra.Command{
 
 		// run the websockets
 		websocket.Run()
+
+		// run game
+		go game.Run()
 
 		// register consul
 		go consul.Register()
