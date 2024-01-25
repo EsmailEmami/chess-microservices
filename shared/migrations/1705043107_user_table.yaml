@@ -1,0 +1,36 @@
+---
+up: |
+  CREATE TABLE "public"."user" (
+    id            					uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    username      					varchar(20) UNIQUE NULL,
+    "password"    					text,
+    first_name    					varchar(100),
+    last_name     					varchar(100),
+    mobile        					varchar(11) NULL,
+    role_id  			      		uuid,
+    is_system     					boolean,
+    enabled       					boolean NOT NULL default true,
+
+    created_at 						  timestamptz default now(),
+    created_by_id 					uuid null,
+    updated_at 						  timestamptz default now(),
+    updated_by_id 					uuid null,
+    deleted_at						  timestamptz null,
+    deleted_by_id 					uuid null,
+
+    CONSTRAINT fk__user__role FOREIGN KEY (role_id) REFERENCES role (id) ON UPDATE CASCADE ON DELETE RESTRICT
+    );
+  
+  ALTER TABLE public.user 
+    ADD CONSTRAINT fk__user_user_created_by FOREIGN KEY (created_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    ADD CONSTRAINT fk__user_user_updated_by FOREIGN KEY (updated_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    ADD CONSTRAINT fk__user_user_deleted_by FOREIGN KEY (deleted_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+  -- role FKs
+  ALTER TABLE role
+    ADD CONSTRAINT fk__role_user_created_by FOREIGN KEY (created_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    ADD CONSTRAINT fk__role_user_updated_by FOREIGN KEY (updated_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    ADD CONSTRAINT fk__role_user_deleted_by FOREIGN KEY (deleted_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+down: |
+  DROP TABLE "public"."user" cascade;

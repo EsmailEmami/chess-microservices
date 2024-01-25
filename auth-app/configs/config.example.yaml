@@ -1,0 +1,26 @@
+app:
+  address: 127.0.0.1
+  port: 3001
+  grpc_port: 3003
+  token_expires_in: 970
+
+consul:
+  enable: true
+  ttl: 10
+  check_duration: 7
+  check_id: auth-service-check-alive
+  id: auth-service
+  cluster_name: chess-microservices
+  tags: 
+    - auth-application
+    - login
+    - register
+
+
+database:
+  host: localhost
+  port: 5464
+  name: chess
+  username: chess
+  password: 12345678
+  sslmode: disable

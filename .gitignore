@@ -1,0 +1,20 @@
+# api gateway application 
+api-gateway/bin
+api-gateway/configs/app/config.yaml
+api-gateway/configs/app/config.prod.yaml
+
+# auth application 
+auth-app/bin
+auth-app/configs/config.yaml
+auth-app/configs/config.prod.yaml
+auth-app/internal/keys/*.key
+
+# game application 
+game-app/bin
+game-app/configs/config.yaml
+game-app/configs/config.prod.yaml
+
+# user application 
+user-app/bin
+user-app/configs/config.yaml
+user-app/configs/config.prod.yaml

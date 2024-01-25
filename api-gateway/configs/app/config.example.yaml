@@ -1,0 +1,17 @@
+app:
+  address: 127.0.0.1
+  port: 3000
+  gateway_file_path: "../configs/gateway/gateway.development.json"
+
+grpc:
+  auth_port: 3003
+
+consul:
+  enable: true
+  ttl: 10
+  check_duration: 7
+  check_id: gateway-service-check-alive
+  id: gateway-service
+  cluster_name: chess-microservices
+  tags: 
+    - gateway-application

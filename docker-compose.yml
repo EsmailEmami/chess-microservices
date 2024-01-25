@@ -1,0 +1,76 @@
+version: "3.8"
+
+networks:
+  chess-microservices:
+    driver: bridge
+
+services:
+  consul-service:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-service
+    restart: always
+    networks:
+      - chess-microservices
+    ports:
+      - "8500:8500"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    # command: "agent -bootstrap-expect=2"
+
+  chess-db:
+    image: postgres:latest
+    container_name: chess-db
+    restart: always
+    environment:
+      - POSTGRES_USER=chess
+      - POSTGRES_PASSWORD=12345678
+      - POSTGRES_DB=chess
+    volumes:
+      - db:/var/lib/postgresql/data
+    ports:
+      - 5464:5432
+    networks:
+      - chess-microservices
+    
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./auth-app/deployments/docker/Dockerfile
+    ports:
+      - "8001:8001"
+    restart: always
+    depends_on:
+      - chess-db
+      - consul-service
+    networks:
+      - chess-microservices
+    
+  game-service:
+    build:
+      context: .
+      dockerfile: ./game-app/deployments/docker/Dockerfile
+    ports:
+      - "8002:8002"
+    restart: always
+    depends_on:
+      - chess-db
+      - consul-service
+    networks:
+      - chess-microservices
+
+  gateway-service:
+    build:
+      context: .
+      dockerfile: ./api-gateway/deployments/docker/Dockerfile
+    ports:
+      - "8000:8000"
+    restart: always
+    depends_on:
+      - auth-service
+      - game-service
+      - consul-service
+    networks:
+      - chess-microservices
+    
+volumes:
+  db:

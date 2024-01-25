@@ -1,0 +1,22 @@
+---
+up: |
+  CREATE TABLE public.login_history (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  
+    user_id UUID NOT NULL,
+
+    ip VARCHAR(50) NULL,
+    user_agent VARCHAR(300) NULL,
+
+    token_id UUID NULL,
+
+    created_at timestamptz NULL,
+    updated_at timestamptz NULL,
+    deleted_at timestamptz NULL,
+ 
+    CONSTRAINT fk_login_history_user FOREIGN KEY (user_id) REFERENCES public."user"(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_login_history_auth_token FOREIGN KEY (token_id) REFERENCES public."auth_token"(id) ON UPDATE CASCADE ON DELETE RESTRICT
+  );
+
+down: |
+  drop table public.login_history cascase;

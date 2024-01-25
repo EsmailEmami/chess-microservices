@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "github.com/esmailemami/chess/auth/internal/app/grpc";
+
+service AuthService {
+	rpc Authenticate(AuthenticateRequest) returns(AuthenticateResponse);
+}
+
+message AuthenticateRequest {
+	string Token = 1;
+}
+
+message AuthenticateResponse {
+	string UserId = 1;
+	string FirstName = 2;
+	string LastName = 3;
+	string Username = 4;
+}

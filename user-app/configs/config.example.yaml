@@ -1,0 +1,22 @@
+app:
+  address: 127.0.0.1
+  port: 3004
+
+consul:
+  enable: true
+  ttl: 10
+  check_duration: 7
+  check_id: user-service-check-alive
+  id: user-service
+  cluster_name: chess-microservices
+  tags: 
+    - user-application
+
+
+database:
+  host: localhost
+  port: 5464
+  name: chess
+  username: chess
+  password: 12345678
+  sslmode: disable

@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "./game-app"
+		},
+		{
+			"path": "./auth-app"
+		},
+		{
+			"path": "./chat-app"
+		},
+		{
+			"path": "./api-gateway"
+		},
+		{
+			"path": "./user-app"
+		},
+		{
+			"path": "./shared"
+		}
+	],
+	"settings": {}
+}

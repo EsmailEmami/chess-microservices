@@ -1,0 +1,16 @@
+---
+up: |
+  CREATE TABLE public.auth_token (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    expires_at timestamptz NULL,
+    revoked bool NOT NULL,
+    created_at timestamptz NULL,
+    updated_at timestamptz NULL,
+    deleted_at timestamptz NULL,
+ 
+    CONSTRAINT fk_auth_token_user FOREIGN KEY (user_id) REFERENCES public."user"(id) ON UPDATE CASCADE ON DELETE RESTRICT
+  );
+
+down: |
+  drop table public.auth_token cascase;

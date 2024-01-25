@@ -1,0 +1,20 @@
+---
+up: |
+  CREATE TABLE role (
+    id    			    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name            varchar(1024) not null,
+    code            varchar(1024) not null unique,
+    is_system       boolean not null,
+    permissions     jsonb null,
+
+
+    created_at 		  timestamptz default now(),
+    created_by_id 	uuid null,
+    updated_at 		  timestamptz default now(),
+    updated_by_id 	uuid null,
+    deleted_at		  timestamptz null,
+    deleted_by_id 	uuid null
+  );
+
+down: |
+  drop table role cascade;

@@ -1,0 +1,38 @@
+{
+	"proxies": [
+	  {
+		"path": "/auth",
+		"target": "http://auth-service:8001",
+		"middlewares": ["execute-duration"],
+		"routes": [
+		  {
+			"path": "*",
+			"methods": ["GET", "POST"]
+		  }
+		]
+	  },
+	  {
+		"path": "/game",
+		"target": "http://game-service:8002",
+		"middlewares": ["execute-duration","authentication"],
+		"routes": [
+		  {
+			"path": "*",
+			"methods": ["GET", "POST"]
+		  }
+		]
+	  },
+	  {
+		"path": "/user",
+		"target": "http://user-service:3004",
+		"middlewares": ["execute-duration","authentication"],
+		"routes": [
+		  {
+			"path": "*",
+			"methods": ["GET", "POST"]
+		  }
+		]
+	  }
+	]
+  }
+  
