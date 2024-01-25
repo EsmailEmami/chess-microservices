@@ -7,6 +7,7 @@ replace github.com/esmailemami/chess/shared => ../shared
 require (
 	github.com/esmailemami/chess/shared v0.0.0-00010101000000-000000000000
 	github.com/gorilla/mux v1.8.1
+	github.com/gorilla/websocket v1.5.1
 	github.com/spf13/viper v1.18.2
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0

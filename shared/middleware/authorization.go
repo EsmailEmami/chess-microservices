@@ -11,11 +11,6 @@ func Authorization() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userIDStr := ctx.GetHeader("UserId")
 
-		//TODO: just for testing websocket
-		if userIDStr == "" {
-			userIDStr = ctx.Query("userId")
-		}
-
 		if userIDStr == "" {
 			ctx.Abort()
 			errs.ErrorHandler(ctx.Writer, errs.UnAuthorizedErr())
