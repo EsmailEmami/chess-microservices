@@ -44,7 +44,7 @@ type ValidationError struct {
 	Message  string `json:"message"`
 	status   int    `json:"-"`
 	logError error
-	Errs     map[string]string
+	Errs     map[string]string `json:"errors"`
 }
 
 func (e *ValidationError) Error() string {
@@ -164,5 +164,5 @@ func BadRequestErr() AppError {
 }
 
 func log(e AppError) {
-	logging.ErrorE(e.getMessage(), e, e.getLogError(), "status", e.GetStatusCode())
+	logging.ErrorE(e.getMessage(), e.getLogError(), "status", e.GetStatusCode())
 }

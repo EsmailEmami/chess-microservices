@@ -14,3 +14,7 @@ type Message struct {
 	RoomID    uuid.UUID  `gorm:"room_id" json:"roomId"`
 	Room      *Room      `gorm:"foreignKey:room_id;references:id;" json:"room"`
 }
+
+func (Message) TableName() string {
+	return "chat.message"
+}

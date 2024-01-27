@@ -1,8 +1,6 @@
 package dbseed
 
 import (
-	"time"
-
 	"github.com/esmailemami/chess/shared/models"
 	"gorm.io/gorm"
 )
@@ -37,26 +35,11 @@ func seedRole(dbConn *gorm.DB) error {
 
 	for _, item := range items {
 
-		var old models.Role
-		err := dbConn.Where("id", item.ID).First(&old).Error
-		if err != nil {
-			if err != gorm.ErrRecordNotFound {
-				return err
-			}
-		}
-
-		if err != nil {
-			if err != gorm.ErrRecordNotFound {
-				return err
-			}
-		}
-		if item.CreatedAt.IsZero() {
-			item.CreatedAt = time.Now()
-		}
-		err = dbConn.Save(&item).Error
+		err := dbConn.Where("id", item.ID).FirstOrCreate(&item).Error
 		if err != nil {
 			return err
 		}
+
 	}
 
 	return nil

@@ -31,6 +31,24 @@ services:
       - 5464:5432
     networks:
       - chess-microservices
+
+  redis-cache:
+    image: redis:latest
+    restart: always
+    container_name: redis-cache
+    ports:
+      - "6380:6379"
+    command: [
+      "bash", "-c",
+      '
+       docker-entrypoint.sh
+       --requirepass 12345678
+      '
+    ]
+    volumes:
+      - redis-data:/data
+    networks:
+      - chess-microservices
     
   auth-service:
     build:
@@ -58,6 +76,33 @@ services:
     networks:
       - chess-microservices
 
+  user-service:
+    build:
+      context: .
+      dockerfile: ./user-app/deployments/docker/Dockerfile
+    ports:
+      - "8004:8004"
+    restart: always
+    depends_on:
+      - chess-db
+      - consul-service
+    networks:
+      - chess-microservices
+
+  chat-service:
+    build:
+      context: .
+      dockerfile: ./chat-app/deployments/docker/Dockerfile
+    ports:
+      - "8005:8005"
+    restart: always
+    depends_on:
+      - chess-db
+      - consul-service
+      - redis-cache
+    networks:
+      - chess-microservices
+
   gateway-service:
     build:
       context: .
@@ -68,9 +113,12 @@ services:
     depends_on:
       - auth-service
       - game-service
+      - chat-service
+      - user-service
       - consul-service
     networks:
       - chess-microservices
     
 volumes:
   db:
+  redis-data:

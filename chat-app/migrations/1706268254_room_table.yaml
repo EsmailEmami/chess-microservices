@@ -1,0 +1,21 @@
+---
+up: |
+  CREATE TABLE chat.room (
+    id    			    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(256) NOT NULL,
+    is_private BOOLEAN NOT NULL,
+ 
+    created_at 		  timestamptz default now(),
+    created_by_id 	uuid null,
+    updated_at 		  timestamptz default now(),
+    updated_by_id 	uuid null,
+    deleted_at		  timestamptz null,
+    deleted_by_id 	uuid null,
+
+    CONSTRAINT fk__room_user_created_by FOREIGN KEY (created_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk__room_user_updated_by FOREIGN KEY (updated_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk__room_user_deleted_by FOREIGN KEY (deleted_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT
+  );
+
+down: |
+  DROP TABLE chat.room cascade;

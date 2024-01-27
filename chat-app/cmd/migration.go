@@ -16,7 +16,7 @@ import (
 
 var migrationsPath string
 
-const app = "auth"
+const app = "chat"
 
 // migrationCmd represents the migration command
 var migrationCmd = &cobra.Command{

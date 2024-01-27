@@ -21,7 +21,6 @@ const (
 	Required            = "This field cannot be empty."
 	InvalidValue        = "Invalid value entered."
 	RecordNotFound      = "Requested record not found."
-
-	PasswordIsShort   = "The password must be at least 8 characters long and include lowercase letters, uppercase letters, and special characters."
-	InvalidCharacters = "The entered value contains invalid characters."
+	PasswordIsShort     = "The password must be at least 8 characters long and include lowercase letters, uppercase letters, and special characters."
+	InvalidCharacters   = "The entered value contains invalid characters."
 )

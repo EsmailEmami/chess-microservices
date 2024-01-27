@@ -48,9 +48,9 @@ type ClientMessage[T any] struct {
 
 func NewClientMessage[T any](c *Client, data T) *ClientMessage[T] {
 	return &ClientMessage[T]{
-		ClientID: c.sessionID,
-		UserID:   c.userID,
-		Ctx:      c.context,
+		ClientID: c.SessionID,
+		UserID:   c.UserID,
+		Ctx:      c.Context,
 		Data:     data,
 	}
 }

@@ -9,7 +9,7 @@ import (
 
 type Model struct {
 	ID          uuid.UUID      `gorm:"id" json:"id"`
-	CreatedAt   time.Time      `gorm:"column:created_at" json:"createdAt" `
+	CreatedAt   time.Time      `gorm:"column:created_at" json:"createdAt"`
 	CreatedByID *uuid.UUID     `gorm:"column:created_by_id" json:"createdById"`
 	CreatedBy   *User          `gorm:"foreignKey:CreatedByID" json:"createdBy" swaggerignore:"true"`
 	UpdatedAt   time.Time      `gorm:"column:updated_at" json:"updatedAt"`

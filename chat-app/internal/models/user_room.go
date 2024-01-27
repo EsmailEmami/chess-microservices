@@ -13,3 +13,7 @@ type UserRoom struct {
 	RoomID uuid.UUID    `gorm:"room_id" json:"roomId"`
 	Room   Room         `gorm:"foreignKey:room_id;references:id;" json:"room"`
 }
+
+func (UserRoom) TableName() string {
+	return "chat.user_room"
+}

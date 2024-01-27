@@ -32,6 +32,17 @@
           "methods": ["GET", "POST"]
         }
       ]
+    },
+    {
+      "path": "/chat",
+      "target": "http://localhost:3005",
+      "middlewares": ["execute-duration","authentication"],
+      "routes": [
+        {
+          "path": "*",
+          "methods": ["GET", "POST"]
+        }
+      ]
     }
   ]
 }

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type seed struct {
@@ -17,8 +16,6 @@ type seed struct {
 }
 
 func Run(conn *gorm.DB, fn ...func(conn *gorm.DB) error) error {
-	conn = conn.Session(&gorm.Session{Logger: logger.Discard})
-
 	seeds := make([]seed, len(fn)+2)
 	seeds[0] = seed{
 		fn:   seedRole,
@@ -30,7 +27,7 @@ func Run(conn *gorm.DB, fn ...func(conn *gorm.DB) error) error {
 	}
 
 	for i, f := range fn {
-		seeds[i] = seed{
+		seeds[i+2] = seed{
 			fn:   f,
 			conn: conn,
 		}

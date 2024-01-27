@@ -12,28 +12,28 @@ import (
 )
 
 type Client struct {
-	sessionID      uuid.UUID
-	userID         uuid.UUID
-	user           *models.User
+	SessionID      uuid.UUID
+	UserID         uuid.UUID
+	User           *models.User
 	conn           *websocket.Conn
 	send           chan *Message
 	ShutdownSignal chan struct{}
 	wss            *DefaultServer
-	context        context.Context
+	Context        context.Context
 }
 
 func NewClient(ctx *gin.Context, server *DefaultServer, conn *websocket.Conn) *Client {
 	user := ctx.Value("user").(*models.User)
 
 	c := &Client{
-		sessionID:      uuid.New(),
-		userID:         user.ID,
-		user:           user,
+		SessionID:      uuid.New(),
+		UserID:         user.ID,
+		User:           user,
 		conn:           conn,
 		send:           make(chan *Message),
 		ShutdownSignal: make(chan struct{}),
 		wss:            server,
-		context:        ctx,
+		Context:        ctx,
 	}
 
 	return c
@@ -63,7 +63,7 @@ loop:
 			err := client.conn.WriteJSON(message)
 
 			if err != nil {
-				logging.ErrorE("Websocket client unable to send message", err, "clientId", client.sessionID)
+				logging.ErrorE("Websocket client unable to send message", err, "clientId", client.SessionID)
 				continue
 			}
 
@@ -82,7 +82,7 @@ func (client *Client) disconnectGracefully() {
 }
 
 func (client *Client) logCloseError(code string, err error) {
-	logging.WarnE("Websocket client disconnected("+code+")", err, "clientId", client.sessionID)
+	logging.WarnE("Websocket client disconnected("+code+")", err, "clientId", client.SessionID)
 }
 
 func (client *Client) handleReadMessageErr(err error) {
@@ -122,7 +122,7 @@ func (client *Client) handleReadMessageErr(err error) {
 
 func (c *Client) Unmarshal(content string, model any) bool {
 	if err := json.Unmarshal([]byte(content), model); err != nil {
-		logging.ErrorE("Websocket client disconnected unmarshalling data", err, "clientId", c.sessionID)
+		logging.ErrorE("Websocket client disconnected unmarshalling data", err, "clientId", c.SessionID)
 		return false
 	}
 

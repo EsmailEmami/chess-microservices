@@ -1,0 +1,24 @@
+---
+up: |
+  CREATE TABLE chat.message (
+    id    			    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    content VARCHAR(256) NOT NULL,
+    reply_to_id uuid NULL,
+    room_id uuid NOT NULL,
+ 
+    created_at 		  timestamptz default now(),
+    created_by_id 	uuid null,
+    updated_at 		  timestamptz default now(),
+    updated_by_id 	uuid null,
+    deleted_at		  timestamptz null,
+    deleted_by_id 	uuid null,
+
+    CONSTRAINT fk__message_user_created_by FOREIGN KEY (created_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk__message_user_updated_by FOREIGN KEY (updated_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk__message_user_deleted_by FOREIGN KEY (deleted_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk__message_room_room_id FOREIGN KEY (room_id) REFERENCES chat.room (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk__message_message_reply_to_id FOREIGN KEY (reply_to_id) REFERENCES chat.message (id) ON UPDATE CASCADE ON DELETE RESTRICT
+  );
+
+down: |
+  DROP TABLE chat.message cascade;

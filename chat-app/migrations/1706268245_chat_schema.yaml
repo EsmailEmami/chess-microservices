@@ -1,0 +1,6 @@
+---
+up: |
+  CREATE SCHEMA IF NOT EXISTS chat;
+
+down: |
+  DROP SCHEMA IF EXISTS chat;

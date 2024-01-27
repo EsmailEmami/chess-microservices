@@ -22,6 +22,8 @@ type Server interface {
 	SendMessageToUser(userID uuid.UUID, msgType string, content any) error
 	SendErrorMessageToClient(clientID uuid.UUID, err string) error
 	Shutdown()
+	OnRegister(fn func(*Client))
+	OnUnregister(fn func(*Client))
 }
 
 type DefaultServer struct {
@@ -33,6 +35,8 @@ type DefaultServer struct {
 	clients        map[uuid.UUID]*Client
 	shutdownSignal chan struct{}
 	onMessage      func(*Client, *Message)
+	onRegisterFn   func(*Client)
+	onUnregisterFn func(*Client)
 }
 
 func NewServer(onMessage func(*Client, *Message)) Server {
@@ -59,17 +63,25 @@ func (s *DefaultServer) Run() {
 		select {
 		case client := <-s.register:
 			s.clientsMutex.Lock()
-			s.clients[client.sessionID] = client
+			s.clients[client.SessionID] = client
 
-			logging.Info("Websocket client registered", "clientId", client.sessionID)
+			logging.Info("Websocket client registered", "clientId", client.SessionID)
+
+			if s.onRegisterFn != nil {
+				s.onRegisterFn(client)
+			}
 
 			s.clientsMutex.Unlock()
 
 		case client := <-s.unregister:
 			s.clientsMutex.Lock()
-			delete(s.clients, client.sessionID)
+			delete(s.clients, client.SessionID)
 
-			logging.Info("Websocket client unregistered", "clientId", client.sessionID)
+			logging.Info("Websocket client unregistered", "clientId", client.SessionID)
+
+			if s.onUnregisterFn != nil {
+				s.onUnregisterFn(client)
+			}
 
 			s.clientsMutex.Unlock()
 
@@ -104,7 +116,7 @@ func (s *DefaultServer) HandleWS(ctx *gin.Context) {
 		client.disconnectGracefully()
 	}()
 
-	logging.Info("Websocket client connected", "clientId", client.sessionID, "remoteAddr", ctx.Request.RemoteAddr)
+	logging.Info("Websocket client connected", "clientId", client.SessionID, "remoteAddr", ctx.Request.RemoteAddr)
 
 	go client.writeMessages()
 	client.readMessages()
@@ -142,7 +154,7 @@ func (s *DefaultServer) SendClientToClientMessage(senderID, receiverID uuid.UUID
 		return fmt.Errorf("receiver (%s) not found", receiverID)
 	}
 
-	msg, err := NewMessage(msgType, content, sender.user.Username)
+	msg, err := NewMessage(msgType, content, sender.User.Username)
 
 	if err != nil {
 		return err
@@ -183,14 +195,14 @@ func (s *DefaultServer) SendClientToUserMessage(clientID uuid.UUID, userID uuid.
 		logging.Warn("Websocket client not found", "senderId", clientID)
 	}
 
-	msg, err := NewMessage(msgType, content, sender.user.Username)
+	msg, err := NewMessage(msgType, content, sender.User.Username)
 
 	if err != nil {
 		return err
 	}
 
 	for _, client := range s.clients {
-		if client.userID == userID {
+		if client.UserID == userID {
 			client.send <- msg
 		}
 	}
@@ -209,7 +221,7 @@ func (s *DefaultServer) SendMessageToUser(userID uuid.UUID, msgType string, cont
 	}
 
 	for _, client := range s.clients {
-		if client.userID == userID {
+		if client.UserID == userID {
 			client.send <- msg
 		}
 	}
@@ -223,6 +235,14 @@ func (s *DefaultServer) Shutdown() {
 
 func (s *DefaultServer) SendErrorMessageToClient(clientID uuid.UUID, err string) error {
 	return s.SendMessageToClient(clientID, "error", ErrorMessage{Message: err})
+}
+
+func (s *DefaultServer) OnRegister(fn func(*Client)) {
+	s.onRegisterFn = fn
+}
+
+func (s *DefaultServer) OnUnregister(fn func(*Client)) {
+	s.onUnregisterFn = fn
 }
 
 func (s *DefaultServer) broadcastMessage(message *Message) {

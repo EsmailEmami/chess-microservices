@@ -65,12 +65,12 @@ func init() {
 }
 
 func checkDir() {
-	err := os.MkdirAll("../migrations", os.ModePerm)
+	err := os.MkdirAll("./migrations", os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	migrationsPath, err = filepath.Abs("../migrations")
+	migrationsPath, err = filepath.Abs("./migrations")
 
 	if err != nil {
 		log.Fatal(err)
