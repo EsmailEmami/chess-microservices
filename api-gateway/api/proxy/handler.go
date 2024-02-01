@@ -7,6 +7,7 @@ import (
 
 	"github.com/esmailemami/chess/api-gateway/api/config"
 	"github.com/esmailemami/chess/api-gateway/api/middleware"
+	"github.com/esmailemami/chess/api-gateway/api/util"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -45,17 +46,13 @@ func handleRequest(routeConfig config.RouteConfig, basePath, target string) http
 }
 
 func proxyRequest(basePath, target string, w http.ResponseWriter, r *http.Request) {
-	path := target + strings.TrimPrefix(r.URL.Path, basePath)
+	path := target + strings.TrimPrefix(r.URL.RequestURI(), basePath)
 
-	if isWebSocketRequest(r) {
+	if util.IsWebSocketRequest(r) {
 		proxyWebSocket(cleanWebSocketAddr(path), w, r)
 	} else {
 		proxyHTTP(path, w, r)
 	}
-}
-
-func isWebSocketRequest(r *http.Request) bool {
-	return strings.ToLower(r.Header.Get("Upgrade")) == "websocket" && strings.ToLower(r.Header.Get("Connection")) == "upgrade"
 }
 
 func proxyHTTP(path string, w http.ResponseWriter, r *http.Request) {

@@ -25,3 +25,9 @@ redis:
   port: 6380
   db: 0
   password: 12345678
+
+
+rabbitmq:
+  username: guest
+  password: guest
+  address: 127.0.0.1:5672

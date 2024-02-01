@@ -1,0 +1,82 @@
+definitions:
+  errs.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  handler.ListResponse-models_RoomsOutPutModel:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.RoomsOutPutModel'
+        type: array
+      from:
+        type: integer
+      last_page:
+        type: integer
+      limit:
+        type: integer
+      page:
+        type: integer
+      to:
+        type: integer
+      total:
+        type: integer
+    type: object
+  handler.Response-handler_ListResponse-models_RoomsOutPutModel:
+    properties:
+      data:
+        $ref: '#/definitions/handler.ListResponse-models_RoomsOutPutModel'
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.RoomsOutPutModel:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /room:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: page size
+        in: query
+        name: page
+        type: string
+      - description: length of records to show
+        in: query
+        name: limit
+        type: string
+      - description: search for item
+        in: query
+        name: searchTerm
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-handler_ListResponse-models_RoomsOutPutModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      tags:
+      - room
+swagger: "2.0"

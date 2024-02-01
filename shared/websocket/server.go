@@ -22,8 +22,10 @@ type Server interface {
 	SendMessageToUser(userID uuid.UUID, msgType string, content any) error
 	SendErrorMessageToClient(clientID uuid.UUID, err string) error
 	Shutdown()
-	OnRegister(fn func(*Client))
-	OnUnregister(fn func(*Client))
+	OnRegister(func(*Client))
+	OnUnregister(func(*Client))
+	OnPong(func(*Client))
+	GetUserConnections(userID uuid.UUID) []*Client
 }
 
 type DefaultServer struct {
@@ -37,6 +39,7 @@ type DefaultServer struct {
 	onMessage      func(*Client, *Message)
 	onRegisterFn   func(*Client)
 	onUnregisterFn func(*Client)
+	onPongFn       func(*Client)
 }
 
 func NewServer(onMessage func(*Client, *Message)) Server {
@@ -45,6 +48,8 @@ func NewServer(onMessage func(*Client, *Message)) Server {
 			return true
 		},
 		EnableCompression: true,
+		ReadBufferSize:    1024,
+		WriteBufferSize:   1024,
 	}
 
 	return &DefaultServer{
@@ -234,7 +239,7 @@ func (s *DefaultServer) Shutdown() {
 }
 
 func (s *DefaultServer) SendErrorMessageToClient(clientID uuid.UUID, err string) error {
-	return s.SendMessageToClient(clientID, "error", ErrorMessage{Message: err})
+	return s.SendMessageToClient(clientID, "error", &ErrorMessage{Message: err})
 }
 
 func (s *DefaultServer) OnRegister(fn func(*Client)) {
@@ -243,6 +248,10 @@ func (s *DefaultServer) OnRegister(fn func(*Client)) {
 
 func (s *DefaultServer) OnUnregister(fn func(*Client)) {
 	s.onUnregisterFn = fn
+}
+
+func (s *DefaultServer) OnPong(fn func(*Client)) {
+	s.onPongFn = fn
 }
 
 func (s *DefaultServer) broadcastMessage(message *Message) {
@@ -266,4 +275,19 @@ func (s *DefaultServer) broadcastMessage(message *Message) {
 
 	close(ch)
 	wg.Wait()
+}
+
+func (s *DefaultServer) GetUserConnections(userID uuid.UUID) []*Client {
+	s.clientsMutex.Lock()
+	defer s.clientsMutex.Unlock()
+
+	var clients []*Client
+
+	for _, client := range s.clients {
+		if client.UserID == userID {
+			clients = append(clients, client)
+		}
+	}
+
+	return clients
 }

@@ -17,7 +17,7 @@ type Message struct {
 
 func NewMessage(msgType string, content any, from string) (*Message, error) {
 
-	bytes, err := json.Marshal(content)
+	bytes, err := json.Marshal(&content)
 
 	if err != nil {
 		return nil, err

@@ -57,6 +57,11 @@ func OK[T any](data *T, msg ...string) *Response[T] {
 	return r
 }
 
+func OKBool(msg ...string) *Response[bool] {
+	ok := true
+	return OK[bool](&ok)
+}
+
 func ListOK[T any](page, limit int, total int64, data []T, msg ...string) *Response[ListResponse[T]] {
 	r := &Response[ListResponse[T]]{
 		Message: consts.OperationDone,

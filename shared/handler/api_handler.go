@@ -75,9 +75,11 @@ func HandleAPI(fn interface{}) gin.HandlerFunc {
 func fillStructFromQuery(strct reflect.Value, ctx *gin.Context) error {
 	for i := 0; i < strct.NumField(); i++ {
 		var (
-			field     = strct.Field(i)
-			jsonTag   = strct.Type().Field(i).Tag.Get("json")
-			fieldName string
+			field       = strct.Field(i)
+			structField = strct.Type().Field(i)
+			jsonTag     = structField.Tag.Get("json")
+			defaultTag  = structField.Tag.Get("default")
+			fieldName   string
 		)
 
 		if jsonTag == "-" {
@@ -92,6 +94,10 @@ func fillStructFromQuery(strct reflect.Value, ctx *gin.Context) error {
 
 		if paramValue, ok := ctx.GetQuery(fieldName); ok {
 			if err := util.SetReflectValueFromString(field, paramValue); err != nil {
+				return err
+			}
+		} else if defaultTag != "" {
+			if err := util.SetReflectValueFromString(field, defaultTag); err != nil {
 				return err
 			}
 		}

@@ -12,7 +12,6 @@ consul:
   tags: 
     - user-application
 
-
 database:
   host: localhost
   port: 5464
@@ -20,3 +19,8 @@ database:
   username: chess
   password: 12345678
   sslmode: disable
+
+rabbitmq:
+  username: guest
+  password: guest
+  address: 127.0.0.1:5672

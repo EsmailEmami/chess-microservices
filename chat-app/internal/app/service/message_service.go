@@ -6,7 +6,6 @@ import (
 
 	appModels "github.com/esmailemami/chess/chat/internal/app/models"
 	"github.com/esmailemami/chess/chat/internal/models"
-	"github.com/esmailemami/chess/chat/pkg/websocket"
 	"github.com/esmailemami/chess/shared/database/psql"
 	"github.com/esmailemami/chess/shared/database/redis"
 	"github.com/esmailemami/chess/shared/errs"
@@ -40,7 +39,7 @@ func (m *MessageService) GetLastMessages(ctx context.Context, roomID uuid.UUID) 
 
 	db := psql.DBContext(ctx)
 
-	qry := m.messageQry(db).Limit(cacheMessagesCount)
+	qry := m.messageQry(db).Where("m.room_id = ?", roomID).Limit(cacheMessagesCount)
 
 	if err := qry.Find(&messages).Error; err != nil {
 		return nil, errs.InternalServerErr().WithError(err)
@@ -54,14 +53,14 @@ func (m *MessageService) GetLastMessages(ctx context.Context, roomID uuid.UUID) 
 	return messages, nil
 }
 
-func (m *MessageService) NewMessage(ctx context.Context, roomID, userID uuid.UUID, msg *websocket.NewMessageRequest) (*appModels.MessageOutPutDto, error) {
+func (m *MessageService) NewMessage(ctx context.Context, roomID, userID uuid.UUID, content string, replyTo *uuid.UUID) (*appModels.MessageOutPutDto, error) {
 	db := psql.DBContext(ctx)
 	tx := db.Begin()
 
 	dbMsg := models.Message{
-		Content:   msg.Content,
+		Content:   content,
 		RoomID:    roomID,
-		ReplyToID: msg.ReplyTo,
+		ReplyToID: replyTo,
 	}
 	dbMsg.CreatedByID = &userID
 	dbMsg.ID = uuid.New()
@@ -130,9 +129,9 @@ func (m *MessageService) getMessage(db *gorm.DB, id uuid.UUID) (*appModels.Messa
 }
 
 func (m *MessageService) roomMessagesCacheKey(roomID uuid.UUID) string {
-	return "last_messages_" + roomID.String()
+	return "chat_room_last_messages_" + roomID.String()
 }
 
 func (m *MessageService) messagesCacheKey(id uuid.UUID) string {
-	return "messages_" + id.String()
+	return "chat_room_messages_" + id.String()
 }

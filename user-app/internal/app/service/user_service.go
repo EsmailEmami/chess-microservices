@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/esmailemami/chess/shared/database/psql"
 	"github.com/esmailemami/chess/shared/errs"
@@ -86,6 +87,17 @@ func (u *UserService) ChangeProfile(ctx context.Context, id uuid.UUID, req *appM
 	req.MergeDBModel(&user)
 
 	if err := db.Save(&user).Error; err != nil {
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	return nil
+}
+
+func (u *UserService) UpdateLastConnection(ctx context.Context, userID uuid.UUID, lastConnection time.Time) error {
+	db := psql.DBContext(ctx)
+
+	if err := db.Model(&sharedModels.User{}).Where("id = ?", userID).
+		UpdateColumn("last_connection", lastConnection).Error; err != nil {
 		return errs.InternalServerErr().WithError(err)
 	}
 

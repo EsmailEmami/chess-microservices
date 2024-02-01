@@ -11,7 +11,7 @@ type UserRoom struct {
 	UserID uuid.UUID    `gorm:"user_id" json:"userId"`
 	User   *models.User `gorm:"foreignKey:user_id;references:id;" json:"user"`
 	RoomID uuid.UUID    `gorm:"room_id" json:"roomId"`
-	Room   Room         `gorm:"foreignKey:room_id;references:id;" json:"room"`
+	Room   *Room        `gorm:"foreignKey:room_id;references:id;" json:"room"`
 }
 
 func (UserRoom) TableName() string {

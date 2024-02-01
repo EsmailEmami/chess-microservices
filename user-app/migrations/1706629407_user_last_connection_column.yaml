@@ -1,0 +1,8 @@
+---
+up: |
+  ALTER TABLE public.user
+    ADD last_connection timestamptz default now();
+
+down: |
+  ALTER TABLE public.user
+    DROP COLUMN  last_connection;

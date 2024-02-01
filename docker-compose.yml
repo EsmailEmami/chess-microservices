@@ -15,7 +15,16 @@ services:
       - "8500:8500"
       - "8600:8600/tcp"
       - "8600:8600/udp"
-    # command: "agent -bootstrap-expect=2"
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
 
   chess-db:
     image: postgres:latest
@@ -86,6 +95,7 @@ services:
     depends_on:
       - chess-db
       - consul-service
+      - rabbitmq
     networks:
       - chess-microservices
 
@@ -100,6 +110,7 @@ services:
       - chess-db
       - consul-service
       - redis-cache
+      - rabbitmq
     networks:
       - chess-microservices
 
@@ -116,6 +127,7 @@ services:
       - chat-service
       - user-service
       - consul-service
+      - rabbitmq
     networks:
       - chess-microservices
     

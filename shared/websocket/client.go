@@ -3,12 +3,27 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/esmailemami/chess/shared/logging"
 	"github.com/esmailemami/chess/shared/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+)
+
+const (
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
+
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+
+	// Maximum message size allowed from peer.
+	maxMessageSize = 512
 )
 
 type Client struct {
@@ -40,6 +55,19 @@ func NewClient(ctx *gin.Context, server *DefaultServer, conn *websocket.Conn) *C
 }
 
 func (client *Client) readMessages() {
+	// read deadline (ping pong)
+	client.conn.SetReadLimit(maxMessageSize)
+	client.conn.SetReadDeadline(time.Now().Add(pongWait))
+	client.conn.SetPongHandler(func(string) error {
+
+		if client.wss.onPongFn != nil {
+			client.wss.onPongFn(client)
+		}
+
+		client.conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
+
 loop:
 	for {
 		var msg Message
@@ -55,10 +83,19 @@ loop:
 }
 
 func (client *Client) writeMessages() {
+
+	ticker := time.NewTicker(pingPeriod)
+
 loop:
 	for {
 		select {
-		case message := <-client.send:
+		case message, ok := <-client.send:
+			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
+
+			if !ok {
+				client.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				break loop
+			}
 
 			err := client.conn.WriteJSON(message)
 
@@ -67,12 +104,19 @@ loop:
 				continue
 			}
 
+		case <-ticker.C:
+			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := client.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
+			}
+
 		case <-client.ShutdownSignal:
 			break loop
 		}
 	}
 
 	close(client.send)
+	ticker.Stop()
 }
 
 func (client *Client) disconnectGracefully() {

@@ -13,7 +13,9 @@ func roomRoutes(r *gin.RouterGroup, roomService *service.RoomService) {
 
 	roomHandler := handler.NewRoomHandler(roomService)
 
+	api.GET("/", apiHandler.HandleAPI(roomHandler.GetRooms))
 	api.POST("/private", apiHandler.HandleAPI(roomHandler.CreatePrivateRoom))
-	api.POST("/global", apiHandler.HandleAPI(roomHandler.CreateGlobalRoom))
-	api.GET("/:id", apiHandler.HandleAPI(roomHandler.GetRoom))
+	api.POST("/public", apiHandler.HandleAPI(roomHandler.CreatePublicRoom))
+	api.POST("/join/:id", apiHandler.HandleAPI(roomHandler.JoinRoom))
+	api.POST("/left/:id", apiHandler.HandleAPI(roomHandler.LeftRoom))
 }

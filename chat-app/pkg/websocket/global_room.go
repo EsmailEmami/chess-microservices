@@ -2,23 +2,20 @@ package websocket
 
 import (
 	"github.com/esmailemami/chess/shared/websocket"
-	"github.com/google/uuid"
-)
-
-type NewMessageRequest struct {
-	Content string     `json:"content"`
-	ReplyTo *uuid.UUID `json:"replyTo,omitempty"`
-}
-
-var (
-	GlobalRoomRegisterCh   = make(chan *websocket.Client, 256)
-	GlobalRoomUnregisterCh = make(chan *websocket.Client, 256)
-	GlobalRoomNewMessageCh = make(chan *websocket.ClientMessage[NewMessageRequest], 256)
 )
 
 const (
 	NewMessage   = "new-message"
 	MessagesList = "messages-list"
+	RoomDetail   = "room-detail"
+	UserJoined   = "user-joined"
+	UserLeft     = "user-left"
+)
+
+var (
+	GlobalRoomRegisterCh   = make(chan *websocket.Client, 256)
+	GlobalRoomUnregisterCh = make(chan *websocket.Client, 256)
+	GlobalRoomNewMessageCh = make(chan *websocket.ClientMessage[NewMessageRequest], 256)
 )
 
 func GlobalRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
