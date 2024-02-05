@@ -1,0 +1,13 @@
+---
+up: |
+  ALTER TABLE public.game
+    ADD winner_id uuid NULL,
+    ADD CONSTRAINT fk__game_user_winner 
+      FOREIGN KEY (winner_id) 
+      REFERENCES public.user (id) 
+      ON UPDATE CASCADE ON DELETE RESTRICT;
+
+down: |
+  ALTER TABLE public.game
+    DROP CONSTRAINT fk__game_user_winner,
+    DROP COLUMN winner_id;

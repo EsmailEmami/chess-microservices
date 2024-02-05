@@ -141,11 +141,11 @@ func (a *AuthService) Login(ctx context.Context, req *appmodels.LoginInputModel)
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)) != nil {
-		return nil, errs.BadRequestErr().WithError(err).Msg(consts.LoginFailed)
+		return nil, errs.BadRequestErr().Msg(consts.LoginFailed)
 	}
 
 	if !user.Enabled {
-		return nil, errs.BadRequestErr().WithError(err).Msg(consts.UserIsDisabled)
+		return nil, errs.BadRequestErr().Msg(consts.UserIsDisabled)
 	}
 
 	token, err := a.NewToken(map[string]interface{}{

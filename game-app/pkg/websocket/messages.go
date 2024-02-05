@@ -1,20 +1,14 @@
 package websocket
 
-type NewGameRequest struct {
-	Color string `json:"color"`
+import "github.com/google/uuid"
+
+type ChessValidMovesRequest struct {
+	GameID   uuid.UUID `json:"gameId"`
+	Position string    `json:"position"`
 }
 
-type GameValidMovesRequest struct {
-	GameID   string `json:"gameId"`
-	Position string `json:"position"`
-}
-
-type GameMovePieceRequest struct {
-	GameID string `json:"gameId"`
-	From   string `json:"position"`
-	To     string `json:"to"`
-}
-
-type JoinGameRequest struct {
-	GameID string `json:"gameId"`
+type ChessMovePieceRequest struct {
+	GameID uuid.UUID `json:"gameId"`
+	From   string    `json:"position"`
+	To     string    `json:"to"`
 }

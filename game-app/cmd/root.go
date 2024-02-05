@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/esmailemami/chess/shared/database/psql"
+	"github.com/esmailemami/chess/shared/database/redis"
 	"github.com/esmailemami/chess/shared/logging"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,6 +24,7 @@ func Execute() {
 func init() {
 	initConfig()
 	initDB()
+	initCache()
 }
 
 func initConfig() {
@@ -52,4 +54,15 @@ func initDB() {
 		logging.FatalE("Unable to initialize database.", err)
 	}
 
+}
+
+func initCache() {
+	var (
+		host     = viper.GetString("redis.host")
+		port     = viper.GetString("redis.port")
+		db       = viper.GetInt("redis.db")
+		password = viper.GetString("redis.password")
+	)
+
+	redis.Connect(host, port, db, password)
 }

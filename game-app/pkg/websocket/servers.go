@@ -9,3 +9,8 @@ var (
 func Run() {
 	go ChessWss.Run()
 }
+
+func init() {
+	ChessWss.OnRegister(ChessOnRegister)
+	ChessWss.OnUnregister(ChessOnUnregister)
+}
