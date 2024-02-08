@@ -4,7 +4,7 @@
         "contact": {}
     },
     "paths": {
-        "/room": {
+        "/profile": {
             "get": {
                 "security": [
                     {
@@ -18,33 +18,13 @@
                     "application/json"
                 ],
                 "tags": [
-                    "room"
-                ],
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "page size",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "length of records to show",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "search for item",
-                        "name": "searchTerm",
-                        "in": "query"
-                    }
+                    "profile"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.Response-handler_ListResponse-models_RoomsOutPutModel"
+                            "$ref": "#/definitions/handler.Response-models_UserProfileOutPutModel"
                         }
                     },
                     "400": {
@@ -60,9 +40,7 @@
                         }
                     }
                 }
-            }
-        },
-        "/room/join/{id}": {
+            },
             "post": {
                 "security": [
                     {
@@ -76,101 +54,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "room"
-                ],
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Response-uuid_UUID"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/errs.Error"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/errs.ValidationError"
-                        }
-                    }
-                }
-            }
-        },
-        "/room/left/{id}": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "room"
-                ],
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handler.Response-uuid_UUID"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/errs.Error"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/errs.ValidationError"
-                        }
-                    }
-                }
-            }
-        },
-        "/room/private": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "room"
+                    "profile"
                 ],
                 "parameters": [
                     {
@@ -179,7 +63,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreatePrivateRoomInputModel"
+                            "$ref": "#/definitions/models.UserChangeProfileInputModel"
                         }
                     }
                 ],
@@ -187,7 +71,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.Response-uuid_UUID"
+                            "$ref": "#/definitions/handler.Response-models_UserProfileOutPutModel"
                         }
                     },
                     "400": {
@@ -205,7 +89,7 @@
                 }
             }
         },
-        "/room/public": {
+        "/profile/change-password": {
             "post": {
                 "security": [
                     {
@@ -219,7 +103,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "room"
+                    "profile"
                 ],
                 "parameters": [
                     {
@@ -228,7 +112,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreatePublicRoomInputModel"
+                            "$ref": "#/definitions/models.UserChangePasswordInputModel"
                         }
                     }
                 ],
@@ -278,40 +162,11 @@
                 }
             }
         },
-        "handler.ListResponse-models_RoomsOutPutModel": {
+        "handler.Response-models_UserProfileOutPutModel": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RoomsOutPutModel"
-                    }
-                },
-                "from": {
-                    "type": "integer"
-                },
-                "last_page": {
-                    "type": "integer"
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "to": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handler.Response-handler_ListResponse-models_RoomsOutPutModel": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/handler.ListResponse-models_RoomsOutPutModel"
+                    "$ref": "#/definitions/models.UserProfileOutPutModel"
                 },
                 "message": {
                     "type": "string"
@@ -335,35 +190,56 @@
                 }
             }
         },
-        "models.CreatePrivateRoomInputModel": {
+        "models.UserChangePasswordInputModel": {
             "type": "object",
             "properties": {
-                "userId": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.CreatePublicRoomInputModel": {
-            "type": "object",
-            "properties": {
-                "name": {
+                "newPassword": {
                     "type": "string"
                 },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "password": {
+                    "type": "string"
                 }
             }
         },
-        "models.RoomsOutPutModel": {
+        "models.UserChangeProfileInputModel": {
             "type": "object",
             "properties": {
+                "firstName": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "mobile": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserProfileOutPutModel": {
+            "type": "object",
+            "properties": {
+                "firstName": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
-                "name": {
+                "lastName": {
+                    "type": "string"
+                },
+                "mobile": {
+                    "type": "string"
+                },
+                "roleId": {
+                    "type": "string"
+                },
+                "roleName": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

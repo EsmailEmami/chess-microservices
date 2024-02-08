@@ -38,8 +38,8 @@ func RunServer() {
 }
 
 func setupSwagger(r *gin.Engine) {
-	docs.SwaggerInfo.Title = "Eshop API doc"
-	docs.SwaggerInfo.Description = "Eshop API."
+	docs.SwaggerInfo.Title = "Chat API doc"
+	docs.SwaggerInfo.Description = "Chat API."
 	docs.SwaggerInfo.Version = "1.0"
 	url := viper.GetString("app.url")
 

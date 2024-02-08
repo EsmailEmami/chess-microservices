@@ -19,6 +19,16 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 	}
 }
 
+// Login godoc
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param input   body  models.LoginInputModel  true  "input model"
+// @Success 200 {object} handler.Response[models.LoginOutputModel]
+// @Failure 400 {object} errs.Error
+// @Failure 422 {object} errs.ValidationError
+// @Router /auth/login [post]
 func (a *AuthHandler) Login(c *gin.Context, req models.LoginInputModel) (*handler.Response[models.LoginOutputModel], error) {
 	// validate the model
 	if err := req.Validate(); err != nil {
@@ -34,6 +44,16 @@ func (a *AuthHandler) Login(c *gin.Context, req models.LoginInputModel) (*handle
 	return handler.OK(resp), nil
 }
 
+// Register godoc
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param input   body  models.RegisterInputModel  true  "input model"
+// @Success 200 {object} handler.Response[uuid.UUID]
+// @Failure 400 {object} errs.Error
+// @Failure 422 {object} errs.ValidationError
+// @Router /auth/register [post]
 func (a *AuthHandler) Register(c *gin.Context, req models.RegisterInputModel) (*handler.Response[uuid.UUID], error) {
 	// validate the model
 	if err := req.Validate(); err != nil {

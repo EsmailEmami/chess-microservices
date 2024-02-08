@@ -1,6 +1,7 @@
 app:
   address: 127.0.0.1
   port: 3004
+  url: http://127.0.0.1:3004
 
 consul:
   enable: true

@@ -23,6 +23,16 @@ func NewChessHandler(chessService *service.ChessService) *ChessHandler {
 	}
 }
 
+// JoinGame godoc
+// @Tags chess
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id   path  string  true  "id"
+// @Success 200 {object} handler.Response[bool]
+// @Failure 400 {object} errs.Error
+// @Failure 422 {object} errs.ValidationError
+// @Router /chess/join/{id} [post]
 func (g *ChessHandler) JoinGame(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
 	currentUser, err := g.GetUser(ctx)
 
@@ -43,6 +53,16 @@ func (g *ChessHandler) JoinGame(ctx *gin.Context, id uuid.UUID) (*handler.Respon
 	return handler.OKBool(), nil
 }
 
+// WatchGame godoc
+// @Tags chess
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id   path  string  true  "id"
+// @Success 200 {object} handler.Response[bool]
+// @Failure 400 {object} errs.Error
+// @Failure 422 {object} errs.ValidationError
+// @Router /chess/watch/{id} [post]
 func (g *ChessHandler) WatchGame(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
 	currentUser, err := g.GetUser(ctx)
 
@@ -57,6 +77,16 @@ func (g *ChessHandler) WatchGame(ctx *gin.Context, id uuid.UUID) (*handler.Respo
 	return handler.OKBool(), nil
 }
 
+// NewChess godoc
+// @Tags chess
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param input   body  models.CreateChessInputModel  true  "input model"
+// @Success 200 {object} handler.Response[bool]
+// @Failure 400 {object} errs.Error
+// @Failure 422 {object} errs.ValidationError
+// @Router /chess [post]
 func (g *ChessHandler) NewChess(ctx *gin.Context, req models.CreateChessInputModel) (*handler.Response[bool], error) {
 	currentUser, err := g.GetUser(ctx)
 

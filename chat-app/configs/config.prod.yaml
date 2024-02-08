@@ -1,6 +1,7 @@
 app:
   address: 127.0.0.1
   port: 8005
+  url: http://127.0.0.1:8005
 
 consul:
   enable: true

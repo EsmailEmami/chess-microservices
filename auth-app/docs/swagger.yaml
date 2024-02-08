@@ -1,0 +1,135 @@
+definitions:
+  errs.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  errs.ValidationError:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
+  handler.Response-models_LoginOutputModel:
+    properties:
+      data:
+        $ref: '#/definitions/models.LoginOutputModel'
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  handler.Response-uuid_UUID:
+    properties:
+      data:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.LoginInputModel:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.LoginOutputModel:
+    properties:
+      expiresAt:
+        type: string
+      expiresIn:
+        type: integer
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.LoginOutputUserModel'
+    type: object
+  models.LoginOutputUserModel:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      username:
+        type: string
+    type: object
+  models.RegisterInputModel:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: input model
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginInputModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-models_LoginOutputModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: input model
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterInputModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-uuid_UUID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - auth
+swagger: "2.0"

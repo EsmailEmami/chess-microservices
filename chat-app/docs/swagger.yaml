@@ -4,6 +4,15 @@ definitions:
       message:
         type: string
     type: object
+  errs.ValidationError:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
   handler.ListResponse-models_RoomsOutPutModel:
     properties:
       data:
@@ -31,6 +40,29 @@ definitions:
         type: string
       status:
         type: integer
+    type: object
+  handler.Response-uuid_UUID:
+    properties:
+      data:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.CreatePrivateRoomInputModel:
+    properties:
+      userId:
+        type: string
+    type: object
+  models.CreatePublicRoomInputModel:
+    properties:
+      name:
+        type: string
+      users:
+        items:
+          type: string
+        type: array
     type: object
   models.RoomsOutPutModel:
     properties:
@@ -73,8 +105,125 @@ paths:
         "422":
           description: Unprocessable Entity
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - room
+  /room/join/{id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-uuid_UUID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - room
+  /room/left/{id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-uuid_UUID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - room
+  /room/private:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: input model
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePrivateRoomInputModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-uuid_UUID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - room
+  /room/public:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: input model
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePublicRoomInputModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-uuid_UUID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
       security:
       - Bearer: []
       tags:

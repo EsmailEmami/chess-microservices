@@ -5,18 +5,23 @@ import (
 
 	"github.com/esmailemami/chess/shared/consul"
 	"github.com/esmailemami/chess/user/api/routes"
+	"github.com/esmailemami/chess/user/docs"
 	"github.com/esmailemami/chess/user/internal/rabbitmq"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func RunServer() {
 	r := gin.Default()
 	r.GET("/", func(ctx *gin.Context) {
-		ctx.Writer.Write([]byte("Wellcome to game service"))
+		ctx.Writer.Write([]byte("Wellcome to user service"))
 	})
 
 	routes.Initialize(r)
+
+	setupSwagger(r)
 
 	rabbitmq.Initialize()
 
@@ -24,4 +29,16 @@ func RunServer() {
 
 	port := viper.GetString("app.port")
 	log.Fatal(r.Run(":" + port))
+}
+
+func setupSwagger(r *gin.Engine) {
+	docs.SwaggerInfo.Title = "User API doc"
+	docs.SwaggerInfo.Description = "User API."
+	docs.SwaggerInfo.Version = "1.0"
+	url := viper.GetString("app.url")
+
+	docs.SwaggerInfo.Host = url
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Schemes = []string{"https", "http"}
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }

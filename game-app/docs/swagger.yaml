@@ -1,0 +1,123 @@
+definitions:
+  errs.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  errs.ValidationError:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
+  handler.Response-bool:
+    properties:
+      data:
+        type: boolean
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.CreateChessInputModel:
+    properties:
+      color:
+        type: string
+      playingWith:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /chess:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: input model
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateChessInputModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-bool'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - chess
+  /chess/join/{id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-bool'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - chess
+  /chess/watch/{id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-bool'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - chess
+swagger: "2.0"

@@ -14,5 +14,5 @@ func chessRoutes(r *gin.RouterGroup, chessService *service.ChessService) {
 
 	api.POST("/watch", apiHandler.HandleAPI(roomHandler.WatchGame))
 	api.POST("/join", apiHandler.HandleAPI(roomHandler.JoinGame))
-	api.POST("/", apiHandler.HandleAPI(roomHandler.JoinGame))
+	api.POST("/", apiHandler.HandleAPI(roomHandler.NewChess))
 }

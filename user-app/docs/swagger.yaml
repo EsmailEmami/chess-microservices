@@ -1,0 +1,154 @@
+definitions:
+  errs.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  errs.ValidationError:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
+  handler.Response-models_UserProfileOutPutModel:
+    properties:
+      data:
+        $ref: '#/definitions/models.UserProfileOutPutModel'
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  handler.Response-uuid_UUID:
+    properties:
+      data:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.UserChangePasswordInputModel:
+    properties:
+      newPassword:
+        type: string
+      password:
+        type: string
+    type: object
+  models.UserChangeProfileInputModel:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      mobile:
+        type: string
+      username:
+        type: string
+    type: object
+  models.UserProfileOutPutModel:
+    properties:
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+      mobile:
+        type: string
+      roleId:
+        type: string
+      roleName:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /profile:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-models_UserProfileOutPutModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - profile
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: input model
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserChangeProfileInputModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-models_UserProfileOutPutModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - profile
+  /profile/change-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: input model
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserChangePasswordInputModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-uuid_UUID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - profile
+swagger: "2.0"
