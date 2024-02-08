@@ -18,3 +18,8 @@ game-app/configs/config.prod.yaml
 user-app/bin
 user-app/configs/config.yaml
 user-app/configs/config.prod.yaml
+
+# chat application 
+chat-app/bin
+chat-app/configs/config.yaml
+chat-app/configs/config.prod.yaml

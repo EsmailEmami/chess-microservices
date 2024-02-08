@@ -22,6 +22,9 @@ func ProxyRoutes(router *mux.Router) error {
 	for _, proxyConfig := range config.Proxies {
 		route := router.PathPrefix(proxyConfig.Path).Subrouter()
 
+		// set cors middleware as default
+		route.Use(middleware.CORS)
+
 		// proxy middlewares
 		route.Use(loadMiddlewares(proxyConfig.Middlewares...)...)
 

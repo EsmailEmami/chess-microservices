@@ -4,7 +4,7 @@ app:
   url: http://127.0.0.1:3005
 
 consul:
-  enable: true
+  enable: false
   ttl: 10
   check_duration: 7
   check_id: chat-service-check-alive
