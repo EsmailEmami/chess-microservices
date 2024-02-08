@@ -5,11 +5,13 @@ import (
 )
 
 const (
-	NewMessage   = "new-message"
-	MessagesList = "messages-list"
-	RoomDetail   = "room-detail"
-	UserJoined   = "user-joined"
-	UserLeft     = "user-left"
+	NewMessage    = "new-message"
+	EditMessage   = "edit-message"
+	DeleteMessage = "delete-message"
+	MessagesList  = "messages-list"
+	RoomDetail    = "room-detail"
+	UserJoined    = "user-joined"
+	UserLeft      = "user-left"
 )
 
 var (

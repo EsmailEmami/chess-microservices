@@ -30,14 +30,18 @@ func NewMessageService(cache *redis.Redis) *MessageService {
 }
 
 func (m *MessageService) GetLastMessages(ctx context.Context, roomID uuid.UUID) ([]appModels.MessageOutPutDto, error) {
+	db := psql.DBContext(ctx)
+
+	return m.getLastMessages(ctx, db, roomID)
+}
+
+func (m *MessageService) getLastMessages(ctx context.Context, db *gorm.DB, roomID uuid.UUID) ([]appModels.MessageOutPutDto, error) {
 	var messages []appModels.MessageOutPutDto
 
 	// try get from cache
 	if err := m.cache.UnmarshalToObject(m.roomMessagesCacheKey(roomID), &messages); err == nil {
 		return messages, nil
 	}
-
-	db := psql.DBContext(ctx)
 
 	qry := m.messageQry(db).Where("m.room_id = ?", roomID).Limit(cacheMessagesCount)
 
@@ -98,6 +102,80 @@ func (m *MessageService) NewMessage(ctx context.Context, roomID, userID uuid.UUI
 	tx.Commit()
 
 	return message, nil
+}
+
+func (m *MessageService) EditMessage(ctx context.Context, id uuid.UUID, content string) (*appModels.MessageOutPutDto, error) {
+	db := psql.DBContext(ctx)
+	tx := db.Begin()
+
+	var dbMsg models.Message
+
+	if err := db.Model(&models.Message{}).Find(&dbMsg, "id = ?", id).Error; err != nil {
+		tx.Rollback()
+		return nil, errs.NotFoundErr().WithError(err)
+	}
+	dbMsg.Content = content
+
+	if err := tx.Model(&models.Message{}).Where("id = ?", id).UpdateColumn("content", content).Error; err != nil {
+		tx.Rollback()
+		return nil, errs.InternalServerErr().WithError(err)
+	}
+
+	message, err := m.getMessage(tx, dbMsg.ID)
+
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	lastMessages, err := m.getLastMessages(ctx, tx, dbMsg.RoomID)
+
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// cache the result
+	if err := m.cache.Set(m.roomMessagesCacheKey(dbMsg.RoomID), &lastMessages, lastMessagesCacheDuration); err != nil {
+		return nil, errs.InternalServerErr().WithError(err)
+	}
+
+	tx.Commit()
+
+	return message, nil
+}
+
+func (m *MessageService) DeleteMessage(ctx context.Context, id uuid.UUID) error {
+	db := psql.DBContext(ctx)
+	tx := db.Begin()
+
+	var dbMsg models.Message
+
+	if err := db.Model(&models.Message{}).Find(&dbMsg, "id = ?", id).Error; err != nil {
+		tx.Rollback()
+		return errs.NotFoundErr().WithError(err)
+	}
+
+	if err := tx.Model(&models.Message{}).Where("id = ?", id).Delete(dbMsg).Error; err != nil {
+		tx.Rollback()
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	lastMessages, err := m.getLastMessages(ctx, tx, dbMsg.RoomID)
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// cache the result
+	if err := m.cache.Set(m.roomMessagesCacheKey(dbMsg.RoomID), &lastMessages, lastMessagesCacheDuration); err != nil {
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	tx.Commit()
+
+	return nil
 }
 
 func (m *MessageService) messageQry(db *gorm.DB) *gorm.DB {

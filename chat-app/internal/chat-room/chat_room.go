@@ -145,6 +145,50 @@ func (g *ChatRoom) SendMessage(req *sharedWebsocket.ClientMessage[websocket.NewM
 	}
 }
 
+func (g *ChatRoom) EditMessage(req *sharedWebsocket.ClientMessage[websocket.EditMessageRequest]) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	msg, err := g.messageService.EditMessage(req.Ctx, req.Data.ID, req.Data.Content)
+
+	if err != nil {
+		g.wss.SendErrorMessageToClient(req.ClientID, err.Error())
+		return
+	}
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.EditMessage, &RoomMessage{
+				RoomID: g.roomID,
+				Data:   msg,
+			})
+		}
+	}
+}
+
+func (g *ChatRoom) DeleteMessage(req *sharedWebsocket.ClientMessage[websocket.DeleteMessageRequest]) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	err := g.messageService.DeleteMessage(req.Ctx, req.Data.ID)
+
+	if err != nil {
+		g.wss.SendErrorMessageToClient(req.ClientID, err.Error())
+		return
+	}
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.DeleteMessage, &RoomMessage{
+				RoomID: g.roomID,
+				Data: struct {
+					ID uuid.UUID `json:"id"`
+				}{req.Data.ID},
+			})
+		}
+	}
+}
+
 func (g *ChatRoom) connect(client *sharedWebsocket.Client) {
 	userClients, ok := g.connections[client.UserID]
 	if !ok {

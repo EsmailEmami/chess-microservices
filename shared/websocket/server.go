@@ -69,26 +69,22 @@ func (s *DefaultServer) Run() {
 		case client := <-s.register:
 			s.clientsMutex.Lock()
 			s.clients[client.SessionID] = client
-
 			logging.Info("Websocket client registered", "clientId", client.SessionID)
+			s.clientsMutex.Unlock()
 
 			if s.onRegisterFn != nil {
 				s.onRegisterFn(client)
 			}
 
-			s.clientsMutex.Unlock()
-
 		case client := <-s.unregister:
 			s.clientsMutex.Lock()
 			delete(s.clients, client.SessionID)
-
 			logging.Info("Websocket client unregistered", "clientId", client.SessionID)
+			s.clientsMutex.Unlock()
 
 			if s.onUnregisterFn != nil {
 				s.onUnregisterFn(client)
 			}
-
-			s.clientsMutex.Unlock()
 
 		case message := <-s.broadcast:
 			s.broadcastMessage(message)

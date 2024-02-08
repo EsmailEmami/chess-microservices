@@ -41,6 +41,8 @@ func runPublicChatRoom() {
 				logging.ErrorE("failed to get user rooms", err)
 			}
 
+			logging.Info("user rooms", "len", len(userRooms), "clientId", client.SessionID)
+
 			for _, roomID := range userRooms {
 				getPublicChatRoom(roomID).Connect(client)
 			}
@@ -59,6 +61,16 @@ func runPublicChatRoom() {
 			room, ok := publicRooms[req.Data.RoomID]
 			if ok {
 				room.SendMessage(req)
+			}
+		case req := <-websocket.PublicRoomEditMessageCh:
+			room, ok := publicRooms[req.Data.RoomID]
+			if ok {
+				room.EditMessage(req)
+			}
+		case req := <-websocket.PublicRoomDeleteMessageCh:
+			room, ok := publicRooms[req.Data.RoomID]
+			if ok {
+				room.DeleteMessage(req)
 			}
 		}
 	}
@@ -93,6 +105,16 @@ func runPrivateChatRoom() {
 			room, ok := privateRooms[req.Data.RoomID]
 			if ok {
 				room.SendMessage(req)
+			}
+		case req := <-websocket.PrivateRoomEditMessageCh:
+			room, ok := privateRooms[req.Data.RoomID]
+			if ok {
+				room.EditMessage(req)
+			}
+		case req := <-websocket.PrivateRoomDeleteMessageCh:
+			room, ok := privateRooms[req.Data.RoomID]
+			if ok {
+				room.DeleteMessage(req)
 			}
 		}
 	}
