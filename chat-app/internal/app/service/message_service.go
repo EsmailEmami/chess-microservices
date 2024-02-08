@@ -184,7 +184,7 @@ func (m *MessageService) messageQry(db *gorm.DB) *gorm.DB {
 		Joins("LEFT JOIN chat.message rm ON rm.id = m.reply_to_id").
 		Joins("LEFT JOIN public.user ur ON ur.id = rm.created_by_id").
 		Order("m.created_at DESC").
-		Select("m.id, m.created_at, m.content, m.created_by_id, u.first_name, u.last_name, m.reply_to_id, rm.content as reply_content, ur.first_name as reply_first_name, ur.last_name as reply_last_name")
+		Select("m.id, m.created_at, m.content, m.created_by_id as user_id, u.first_name, u.last_name, m.reply_to_id, rm.content as reply_content, ur.first_name as reply_first_name, ur.last_name as reply_last_name")
 }
 
 func (m *MessageService) getMessage(db *gorm.DB, id uuid.UUID) (*appModels.MessageOutPutDto, error) {

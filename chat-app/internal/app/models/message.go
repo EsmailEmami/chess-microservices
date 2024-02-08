@@ -11,9 +11,9 @@ type MessageOutPutDto struct {
 	Content   string    `gorm:"content" json:"content"`
 	CreatedAt time.Time `gorm:"created_at" json:"createdAt"`
 
-	UserID    *uuid.UUID `gorm:"created_by_id" json:"userId"`
-	FirstName *string    `gorm:"first_name" json:"firstName"`
-	LastName  *string    `gorm:"last_name" json:"lastName"`
+	UserID    uuid.UUID `gorm:"user_id" json:"userId"`
+	FirstName *string   `gorm:"first_name" json:"firstName"`
+	LastName  *string   `gorm:"last_name" json:"lastName"`
 
 	ReplyToID        *uuid.UUID `gorm:"reply_to_id" json:"replyToId"`
 	ReplyToContent   *string    `gorm:"reply_content" json:"replyToContent"`
