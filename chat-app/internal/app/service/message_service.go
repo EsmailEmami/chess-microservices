@@ -159,7 +159,7 @@ func (m *MessageService) DeleteMessage(ctx context.Context, id uuid.UUID) error 
 		return errs.NotFoundErr().WithError(err)
 	}
 
-	if err := tx.Model(&models.Message{}).Where("id = ?", id).Delete(dbMsg).Error; err != nil {
+	if err := tx.Model(&models.Message{}).Where("id = ?", id).Delete(&dbMsg).Error; err != nil {
 		tx.Rollback()
 		return errs.InternalServerErr().WithError(err)
 	}
