@@ -1,0 +1,27 @@
+app:
+  address: 127.0.0.1
+  port: 3006
+  url: http://127.0.0.1:3006
+
+consul:
+  enable: true
+  ttl: 10
+  check_duration: 7
+  check_id: media-service-check-alive
+  id: media-service
+  cluster_name: chess-microservices
+  tags: 
+    - media-application
+
+database:
+  host: localhost
+  port: 5464
+  name: chess
+  username: chess
+  password: 12345678
+  sslmode: disable
+
+rabbitmq:
+  username: guest
+  password: guest
+  address: 127.0.0.1:5672

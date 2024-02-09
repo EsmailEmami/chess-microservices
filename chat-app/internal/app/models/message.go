@@ -19,4 +19,7 @@ type MessageOutPutDto struct {
 	ReplyToContent   *string    `gorm:"column:reply_content" json:"replyToContent"`
 	ReplyToFirstName *string    `gorm:"column:reply_first_name" json:"replyToFirstName"`
 	ReplyToLastName  *string    `gorm:"column:reply_last_name" json:"replyToLastName"`
+
+	IsEdited bool `gorm:"column:is_edited" json:"isEdited"`
+	IsSeen   bool `gorm:"column:is_seen"   json:"isSeen"`
 }

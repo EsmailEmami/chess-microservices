@@ -13,6 +13,8 @@ type Message struct {
 	ReplyTo   *Message   `gorm:"foreignKey:reply_to_id;references:id;" json:"replyTo"`
 	RoomID    uuid.UUID  `gorm:"room_id" json:"roomId"`
 	Room      *Room      `gorm:"foreignKey:room_id;references:id;" json:"room"`
+	IsEdited  bool       `gorm:"column:is_edited" json:"isEdited"`
+	IsSeen    bool       `gorm:"column:is_seen" json:"isSeen"`
 }
 
 func (Message) TableName() string {

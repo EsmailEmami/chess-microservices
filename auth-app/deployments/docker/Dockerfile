@@ -2,6 +2,7 @@ FROM golang:1.21.6
 
 RUN mkdir -p /build
 RUN mkdir -p /app
+RUN mkdir -p /app/migrations
 
 WORKDIR /build
 COPY ./shared ./shared

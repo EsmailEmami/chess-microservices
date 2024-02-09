@@ -16,6 +16,9 @@
 			"path": "./user-app"
 		},
 		{
+			"path": "./media-app"
+		},
+		{
 			"path": "./shared"
 		}
 	],

@@ -189,6 +189,29 @@ func (g *ChatRoom) DeleteMessage(req *sharedWebsocket.ClientMessage[websocket.De
 	}
 }
 
+func (g *ChatRoom) SeenMessage(req *sharedWebsocket.ClientMessage[websocket.SeenMessageRequest]) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	err := g.messageService.DeleteMessage(req.Ctx, req.Data.ID)
+
+	if err != nil {
+		g.wss.SendErrorMessageToClient(req.ClientID, err.Error())
+		return
+	}
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.SeenMessage, &RoomMessage{
+				RoomID: g.roomID,
+				Data: struct {
+					ID uuid.UUID `json:"id"`
+				}{req.Data.ID},
+			})
+		}
+	}
+}
+
 func (g *ChatRoom) connect(client *sharedWebsocket.Client) {
 	userClients, ok := g.connections[client.UserID]
 	if !ok {

@@ -1,0 +1,14 @@
+# api gateway application 
+api-gateway/bin
+
+# auth application 
+auth-app/bin
+
+# game application 
+game-app/bin
+
+# user application 
+user-app/bin
+
+# chat application 
+chat-app/bin

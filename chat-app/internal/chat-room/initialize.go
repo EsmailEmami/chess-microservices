@@ -116,6 +116,11 @@ func runPrivateChatRoom() {
 			if ok {
 				room.DeleteMessage(req)
 			}
+		case req := <-websocket.PrivateRoomSeenMessageCh:
+			room, ok := privateRooms[req.Data.RoomID]
+			if ok {
+				room.SeenMessage(req)
+			}
 		}
 	}
 }

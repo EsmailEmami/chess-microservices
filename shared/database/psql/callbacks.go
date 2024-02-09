@@ -58,53 +58,53 @@ func isNiIDString(id string) bool {
 	// return id == ""
 }
 
-func extractIDFromWhereClause(w clause.Where) (ids []string) {
-	for _, c := range w.Exprs {
-		switch t := c.(type) {
-		case clause.Eq:
-			{
-				colName := ""
-				switch col := t.Column.(type) {
-				case string:
-					colName = col
-				case clause.Column:
-					colName = col.Name
-				}
+// func extractIDFromWhereClause(w clause.Where) (ids []string) {
+// 	for _, c := range w.Exprs {
+// 		switch t := c.(type) {
+// 		case clause.Eq:
+// 			{
+// 				colName := ""
+// 				switch col := t.Column.(type) {
+// 				case string:
+// 					colName = col
+// 				case clause.Column:
+// 					colName = col.Name
+// 				}
 
-				if colName == "id" || colName == clause.PrimaryKey {
-					ids = append(ids, fmt.Sprintf("%v", t.Value))
-				}
-			}
-		case clause.IN:
-			{
-				colName := ""
-				switch col := t.Column.(type) {
-				case string:
-					colName = col
-				case clause.Column:
-					colName = col.Name
-				}
+// 				if colName == "id" || colName == clause.PrimaryKey {
+// 					ids = append(ids, fmt.Sprintf("%v", t.Value))
+// 				}
+// 			}
+// 		case clause.IN:
+// 			{
+// 				colName := ""
+// 				switch col := t.Column.(type) {
+// 				case string:
+// 					colName = col
+// 				case clause.Column:
+// 					colName = col.Name
+// 				}
 
-				if colName != "id" && colName != clause.PrimaryKey {
-					continue
-				}
-				for _, i := range t.Values {
-					ids = append(ids, fmt.Sprintf("%v", i))
-				}
-			}
-		case clause.Expr:
-			{
+// 				if colName != "id" && colName != clause.PrimaryKey {
+// 					continue
+// 				}
+// 				for _, i := range t.Values {
+// 					ids = append(ids, fmt.Sprintf("%v", i))
+// 				}
+// 			}
+// 		case clause.Expr:
+// 			{
 
-			}
-		default:
-			{
-				return nil
-			}
-		}
-	}
+// 			}
+// 		default:
+// 			{
+// 				return nil
+// 			}
+// 		}
+// 	}
 
-	return ids
-}
+// 	return ids
+// }
 
 func beforeCallback(callback func(scope *gorm.DB, v reflect.Value, user *models.User) error) func(*gorm.DB) {
 	return func(scope *gorm.DB) {
@@ -193,10 +193,7 @@ func beforeDeleteCallback(scope *gorm.DB, st reflect.Value, user *models.User) e
 
 		idField := reflect.Indirect(modelVal).FieldByName("ID")
 		if idField.IsValid() {
-			idPtr := idField.Interface().(*uuid.UUID)
-			if idPtr == nil {
-				id = uuid.Nil
-			}
+			id = idField.Interface().(uuid.UUID)
 		}
 
 		val := reflect.Indirect(modelVal).FieldByName("DeletedByID")
@@ -211,10 +208,7 @@ func beforeDeleteCallback(scope *gorm.DB, st reflect.Value, user *models.User) e
 	} else {
 		idField := reflect.Indirect(modelVal).FieldByName("ID")
 		if idField.IsValid() {
-			idPtr := idField.Interface().(*uuid.UUID)
-			if idPtr == nil {
-				id = uuid.Nil
-			}
+			id = idField.Interface().(uuid.UUID)
 		}
 
 		val := modelVal.FieldByName("DeletedByID")

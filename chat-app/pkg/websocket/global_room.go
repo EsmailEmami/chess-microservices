@@ -4,16 +4,6 @@ import (
 	"github.com/esmailemami/chess/shared/websocket"
 )
 
-const (
-	NewMessage    = "new-message"
-	EditMessage   = "edit-message"
-	DeleteMessage = "delete-message"
-	MessagesList  = "messages-list"
-	RoomDetail    = "room-detail"
-	UserJoined    = "user-joined"
-	UserLeft      = "user-left"
-)
-
 var (
 	GlobalRoomRegisterCh   = make(chan *websocket.Client, 256)
 	GlobalRoomUnregisterCh = make(chan *websocket.Client, 256)
