@@ -1,0 +1,28 @@
+---
+up: |
+  CREATE TYPE file_type AS ENUM ('user-profile', 'public-room-profile');
+
+  CREATE TABLE media.attachment (
+    id    			    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    mime_type VARCHAR(256) NOT NULL,
+    extension VARCHAR(256) NOT NULL,
+    original_name VARCHAR(256) NOT NULL,
+    file_type file_type NOT NULL,
+    file_name VARCHAR(256) NOT NULL,
+    upload_path VARCHAR(512) NOT NULL,
+    item_id uuid NOT NULL,
+ 
+    created_at 		  timestamptz default now(),
+    created_by_id 	uuid null,
+    updated_at 		  timestamptz default now(),
+    updated_by_id 	uuid null,
+    deleted_at		  timestamptz null,
+    deleted_by_id 	uuid null,
+
+    CONSTRAINT fk__room_user_created_by FOREIGN KEY (created_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk__room_user_updated_by FOREIGN KEY (updated_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk__room_user_deleted_by FOREIGN KEY (deleted_by_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT
+  );
+
+down: |
+  DROP TABLE media.attachment cascade;

@@ -2,6 +2,7 @@ app:
   address: 127.0.0.1
   port: 3006
   url: http://127.0.0.1:3006
+  upload_files_directory: PATH/attachments
 
 consul:
   enable: true

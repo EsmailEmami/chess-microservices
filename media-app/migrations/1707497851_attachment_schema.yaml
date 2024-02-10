@@ -1,0 +1,6 @@
+---
+up: |
+  CREATE SCHEMA IF NOT EXISTS media;
+
+down: |
+  DROP SCHEMA IF EXISTS media;

@@ -149,7 +149,7 @@ func (g *ChatRoom) EditMessage(req *sharedWebsocket.ClientMessage[websocket.Edit
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	msg, err := g.messageService.EditMessage(req.Ctx, req.Data.ID, req.Data.Content)
+	msg, err := g.messageService.EditMessage(req.Ctx, req.Data.ID, req.Data.RoomID, req.Data.Content)
 
 	if err != nil {
 		g.wss.SendErrorMessageToClient(req.ClientID, err.Error())
@@ -170,7 +170,7 @@ func (g *ChatRoom) DeleteMessage(req *sharedWebsocket.ClientMessage[websocket.De
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	err := g.messageService.DeleteMessage(req.Ctx, req.Data.ID)
+	err := g.messageService.DeleteMessage(req.Ctx, req.Data.ID, req.Data.RoomID)
 
 	if err != nil {
 		g.wss.SendErrorMessageToClient(req.ClientID, err.Error())
@@ -193,7 +193,7 @@ func (g *ChatRoom) SeenMessage(req *sharedWebsocket.ClientMessage[websocket.Seen
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	err := g.messageService.DeleteMessage(req.Ctx, req.Data.ID)
+	err := g.messageService.SeenMessage(req.Ctx, req.Data.ID, req.Data.RoomID)
 
 	if err != nil {
 		g.wss.SendErrorMessageToClient(req.ClientID, err.Error())

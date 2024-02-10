@@ -1,25 +1,31 @@
 # api gateway application 
 api-gateway/bin
+api-gateway/.vscode
 api-gateway/configs/app/config.yaml
 api-gateway/configs/app/config.prod.yaml
 
 # auth application 
 auth-app/bin
+auth-app/.vscode
 auth-app/configs/config.yaml
 auth-app/configs/config.prod.yaml
 auth-app/internal/keys/*.key
 
 # game application 
 game-app/bin
+game-app/.vscode
 game-app/configs/config.yaml
 game-app/configs/config.prod.yaml
 
 # user application 
 user-app/bin
+user-app/.vscode
 user-app/configs/config.yaml
 user-app/configs/config.prod.yaml
 
 # chat application 
 chat-app/bin
+chat-app/.vscode
 chat-app/configs/config.yaml
 chat-app/configs/config.prod.yaml
+

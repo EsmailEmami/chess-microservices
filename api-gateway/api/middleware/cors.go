@@ -5,10 +5,11 @@ import (
 	"strings"
 
 	"github.com/esmailemami/chess/api-gateway/api/util"
+	"github.com/spf13/viper"
 )
 
 func CORS(next http.Handler) http.Handler {
-	accessOrigins := []string{}
+	accessOrigins := viper.GetStringSlice("access_origins")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !util.IsWebSocketRequest(r) {
@@ -17,24 +18,21 @@ func CORS(next http.Handler) http.Handler {
 				safeOrigin = false
 			)
 
-			if strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.0.0.1") ||
-				strings.HasPrefix(origin, "https://localhost") || strings.HasPrefix(origin, "https://127.0.0.1") {
-				safeOrigin = true
-			} else {
-				for i := 0; i < len(accessOrigins); i++ {
-					if strings.EqualFold(accessOrigins[i], origin) {
-						safeOrigin = true
-						break
-					}
+			for i := 0; i < len(accessOrigins); i++ {
+				if strings.EqualFold(accessOrigins[i], origin) {
+					safeOrigin = true
+					break
 				}
 			}
 
-			if !safeOrigin {
-				origin = ""
+			w.Header().Add("Access-Control-Allow-Origin", strings.Join(accessOrigins, ", "))
+
+			if safeOrigin {
+				w.Header().Add("Access-Control-Allow-Credentials", "true")
+			} else {
+				w.Header().Add("Access-Control-Allow-Credentials", "false")
 			}
 
-			w.Header().Add("Access-Control-Allow-Origin", origin)
-			w.Header().Add("Access-Control-Allow-Credentials", "true")
 			w.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Content-Length, Accept-Encoding, Authorization")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 
