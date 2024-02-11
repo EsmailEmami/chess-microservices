@@ -29,3 +29,6 @@ chat-app/.vscode
 chat-app/configs/config.yaml
 chat-app/configs/config.prod.yaml
 
+
+
+pids.txt

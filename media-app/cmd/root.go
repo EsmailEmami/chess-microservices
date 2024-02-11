@@ -31,7 +31,7 @@ func initConfig() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./configs")
-	viper.AddConfigPath("./game-app/configs")
+	viper.AddConfigPath("./media-app/configs")
 
 	viper.SetConfigType("yaml")
 	viper.AutomaticEnv()

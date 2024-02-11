@@ -26,3 +26,4 @@ up: |
 
 down: |
   DROP TABLE media.attachment cascade;
+  DROP TYPE file_type;

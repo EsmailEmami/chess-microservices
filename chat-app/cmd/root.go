@@ -31,7 +31,7 @@ func initConfig() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./configs")
-	viper.AddConfigPath("./auth-app/configs")
+	viper.AddConfigPath("./chat-app/configs")
 
 	viper.SetConfigType("yaml")
 	viper.AutomaticEnv()

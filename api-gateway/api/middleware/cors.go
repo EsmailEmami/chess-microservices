@@ -12,12 +12,12 @@ func CORS(next http.Handler) http.Handler {
 	accessOrigins := viper.GetStringSlice("access_origins")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !util.IsWebSocketRequest(r) {
-			var (
-				origin     = r.Header.Get("Origin")
-				safeOrigin = false
-			)
+		var (
+			origin     = r.Header.Get("Origin")
+			safeOrigin = false
+		)
 
+		if !util.IsWebSocketRequest(r) {
 			for i := 0; i < len(accessOrigins); i++ {
 				if strings.EqualFold(accessOrigins[i], origin) {
 					safeOrigin = true
@@ -25,12 +25,12 @@ func CORS(next http.Handler) http.Handler {
 				}
 			}
 
-			w.Header().Add("Access-Control-Allow-Origin", strings.Join(accessOrigins, ", "))
-
 			if safeOrigin {
 				w.Header().Add("Access-Control-Allow-Credentials", "true")
+				w.Header().Add("Access-Control-Allow-Origin", origin)
 			} else {
 				w.Header().Add("Access-Control-Allow-Credentials", "false")
+				w.Header().Add("Access-Control-Allow-Origin", strings.Join(accessOrigins, ", "))
 			}
 
 			w.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Content-Length, Accept-Encoding, Authorization")

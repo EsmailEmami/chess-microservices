@@ -41,6 +41,8 @@ func (a *AuthHandler) Login(c *gin.Context, req models.LoginInputModel) (*handle
 		return nil, err
 	}
 
+	c.SetCookie("Authorization", resp.Token, int(resp.ExpiresIn), "/", "", true, true)
+
 	return handler.OK(resp), nil
 }
 

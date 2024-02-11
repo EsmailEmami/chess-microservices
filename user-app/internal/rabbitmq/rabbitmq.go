@@ -15,8 +15,6 @@ func Initialize() {
 		address  = viper.GetString("rabbitmq.address")
 	)
 
-	logging.Info("rabbitmq connection to:", "username", username, "password", password, "address", address)
-
 	amqpConn, err := rabbitmq.New(username, password, address)
 
 	if err != nil {
@@ -26,7 +24,8 @@ func Initialize() {
 	amqp = amqpConn
 
 	// initialize exchanges and queues
-	initializeUserRabbitMQ()
+	initializeChatRabbitMQ()
+	initializeMediaRabbitMQ()
 
 	logging.Info("rabbit MQ connected")
 }

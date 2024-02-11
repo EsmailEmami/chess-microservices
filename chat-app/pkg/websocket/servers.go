@@ -33,7 +33,7 @@ func init() {
 	PrivateChatRoomWss.OnRegister(PrivateChatRoomOnRegister)
 	PrivateChatRoomWss.OnUnregister(PrivateChatRoomOnUnregister)
 
-	GlobalRoomWss.OnPong(func(c *websocket.Client) {
+	PublicChatRoomWss.OnPong(func(c *websocket.Client) {
 		if err := rabbitmq.PublishUserLastConnection(context.Background(), c.UserID, time.Now()); err != nil {
 			logging.WarnE("failed to send user last connection date", err)
 		}

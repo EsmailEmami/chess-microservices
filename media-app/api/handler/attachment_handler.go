@@ -1,10 +1,11 @@
 package handler
 
 import (
-	"mime/multipart"
+	"context"
 
 	"github.com/esmailemami/chess/media/internal/app/service"
 	dbModels "github.com/esmailemami/chess/media/internal/models"
+	"github.com/esmailemami/chess/media/internal/rabbitmq"
 	"github.com/esmailemami/chess/shared/errs"
 	"github.com/esmailemami/chess/shared/handler"
 	"github.com/gin-gonic/gin"
@@ -30,34 +31,28 @@ func NewAttachmentHandler(attachmentService *service.AttachmentService) *Attachm
 // @Security Bearer
 // @Param id   path  string  true  "id"
 // @Param file formData file true "Image file to be uploaded"
-// @Success 200 {object} handler.Response[bool]
+// @Success 200 {object} handler.Response[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /attachment/upload/profile/{id} [post]
-func (a *AttachmentHandler) UploadProile(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
-	err := a.upload(ctx, id, dbModels.ATTACHMENT_USER_PROFILE)
+func (a *AttachmentHandler) UploadProile(ctx *gin.Context, id uuid.UUID) (*handler.Response[uuid.UUID], error) {
+	files, err := a.GetFiles(ctx, handler.TenMB)
 	if err != nil {
 		return nil, err
 	}
 
-	return handler.OKBool(), nil
-}
+	if len(files) == 0 {
+		return nil, errs.BadRequestErr().Msg("No file received!")
+	}
 
-func (a *AttachmentHandler) upload(c *gin.Context, itemID uuid.UUID, fileType string) error {
-	err := c.Request.ParseMultipartForm(10 << 20) // 10 MB maximum file size
+	attachment, err := a.attachmentService.UploadFile(ctx, files[0], id, dbModels.ATTACHMENT_USER_PROFILE, dbModels.ATTACHMENT_USER_PROFILE)
 	if err != nil {
-		return errs.BadRequestErr().WithError(err).Msg("File size is more than 10MB")
+		return nil, err
 	}
 
-	var files []*multipart.FileHeader
+	// send the data to rabbitmq
 
-	for _, fileHeaders := range c.Request.MultipartForm.File {
-		files = append(files, fileHeaders...)
-	}
+	rabbitmq.PublishUserProfile(context.Background(), id, attachment.UploadPath)
 
-	if _, err := a.attachmentService.UploadFiles(c, files, itemID, fileType, fileType); err != nil {
-		return err
-	}
-
-	return nil
+	return handler.OK(&attachment.ID), nil
 }
