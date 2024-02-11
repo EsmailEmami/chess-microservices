@@ -6,10 +6,12 @@ import (
 
 	"github.com/esmailemami/chess/shared/database/psql"
 	"github.com/esmailemami/chess/shared/errs"
-	"github.com/esmailemami/chess/shared/models"
+
 	sharedModels "github.com/esmailemami/chess/shared/models"
 	"github.com/esmailemami/chess/shared/service"
 	appModels "github.com/esmailemami/chess/user/internal/app/models"
+	"github.com/esmailemami/chess/user/internal/models"
+	"github.com/esmailemami/chess/user/internal/util"
 	"github.com/esmailemami/chess/user/pkg/consts"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -26,7 +28,7 @@ func NewUserService() *UserService {
 func (u *UserService) GetProfile(ctx context.Context, id uuid.UUID) (*appModels.UserProfileOutPutModel, error) {
 	db := psql.DBContext(ctx).Table(`"user" u`).
 		Joins("INNER JOIN role r ON r.id = u.role_id").
-		Select("u.id, u.first_name, u.last_name, u.mobile, u.username, u.role_id, r.name as role_name").
+		Select("u.id, u.first_name, u.last_name, u.mobile, u.username, u.role_id, r.name as role_name, u.profile").
 		Where("u.deleted_at is null").
 		Where("u.id = ?", id)
 
@@ -35,6 +37,9 @@ func (u *UserService) GetProfile(ctx context.Context, id uuid.UUID) (*appModels.
 	if err := db.Find(&resp).Error; err != nil {
 		return nil, errs.InternalServerErr().WithError(err)
 	}
+
+	// set prefix of files
+	resp.Profile = util.FilePathPrefix(resp.Profile)
 
 	return &resp, nil
 }
@@ -96,8 +101,19 @@ func (u *UserService) ChangeProfile(ctx context.Context, id uuid.UUID, req *appM
 func (u *UserService) UpdateLastConnection(ctx context.Context, userID uuid.UUID, lastConnection time.Time) error {
 	db := psql.DBContext(ctx)
 
-	if err := db.Model(&sharedModels.User{}).Where("id = ?", userID).
+	if err := db.Model(&models.User{}).Where("id = ?", userID).
 		UpdateColumn("last_connection", lastConnection).Error; err != nil {
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	return nil
+}
+
+func (u *UserService) UpdateProfile(ctx context.Context, userID uuid.UUID, profile string) error {
+	db := psql.DBContext(ctx)
+
+	if err := db.Model(&models.User{}).Where("id = ?", userID).
+		UpdateColumn("profile", profile).Error; err != nil {
 		return errs.InternalServerErr().WithError(err)
 	}
 

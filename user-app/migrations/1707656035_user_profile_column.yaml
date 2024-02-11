@@ -1,0 +1,8 @@
+---
+up: |
+  ALTER TABLE public.user
+    ADD profile VARCHAR(512) NULL;
+
+down: |
+  ALTER TABLE public.user
+    DROP COLUMN profile;

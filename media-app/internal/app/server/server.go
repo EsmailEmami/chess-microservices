@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/esmailemami/chess/media/api/routes"
 	"github.com/esmailemami/chess/media/docs"
@@ -26,6 +27,10 @@ func RunServer() {
 	rabbitmq.Initialize()
 
 	go consul.Register()
+
+	filesDir := viper.GetString("app.upload_files_directory")
+
+	r.StaticFS("/uploads", http.Dir(filesDir))
 
 	log.Fatal(r.Run(":" + viper.GetString("app.port")))
 }

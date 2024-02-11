@@ -43,6 +43,22 @@
           "methods": ["GET", "POST", "OPTIONS"]
         }
       ]
+    },
+    {
+      "path": "/media",
+      "target": "http://localhost:3006",
+      "middlewares": ["execute-duration"],
+      "routes": [
+        {
+          "path": "*",
+          "methods": ["GET", "POST", "OPTIONS"],
+          "middlewares": ["authentication"]
+        },
+        {
+          "path": "/uploads/*",
+          "methods": ["GET"]
+        }
+      ]
     }
   ]
 }

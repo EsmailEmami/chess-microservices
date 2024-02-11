@@ -139,8 +139,8 @@ func (rmq *RabbitMQ) ConsumeMessages(queueName string) (<-chan amqp.Delivery, er
 	return msgs, nil
 }
 
-// ConsumeMessagesFromTopic consumes messages from a queue bound to a topic exchange with a routing pattern.
-func (rmq *RabbitMQ) ConsumeMessagesFromTopic(queueName, exchangeName, routingPattern string) (<-chan amqp.Delivery, error) {
+// ConsumeMessagesFromDirect consumes messages from a queue bound to a direct exchange with a routing key.
+func (rmq *RabbitMQ) ConsumeMessagesFromExchange(queueName, exchangeName, routingKey string) (<-chan amqp.Delivery, error) {
 	// Declare the queue
 	queue, err := rmq.DeclareQueue(queueName, true, false, false)
 	if err != nil {
@@ -148,29 +148,6 @@ func (rmq *RabbitMQ) ConsumeMessagesFromTopic(queueName, exchangeName, routingPa
 	}
 
 	// Bind the queue to the topic exchange with the routing pattern
-	err = rmq.BindQueueToExchange(queue.Name, exchangeName, routingPattern)
-	if err != nil {
-		return nil, err
-	}
-
-	// Consume messages from the queue
-	msgs, err := rmq.ConsumeMessages(queue.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	return msgs, nil
-}
-
-// ConsumeMessagesFromTopicWithRoutingKey consumes messages from a queue bound to a topic exchange with a specific routing key.
-func (rmq *RabbitMQ) ConsumeMessagesFromTopicWithRoutingKey(queueName, exchangeName, routingKey string) (<-chan amqp.Delivery, error) {
-	// Declare the queue
-	queue, err := rmq.DeclareQueue(queueName, true, false, false)
-	if err != nil {
-		return nil, err
-	}
-
-	// Bind the queue to the topic exchange with the specific routing key
 	err = rmq.BindQueueToExchange(queue.Name, exchangeName, routingKey)
 	if err != nil {
 		return nil, err

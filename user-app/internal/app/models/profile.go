@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/esmailemami/chess/shared/models"
 	sharedValidations "github.com/esmailemami/chess/shared/validations"
+	"github.com/esmailemami/chess/user/internal/models"
 	"github.com/esmailemami/chess/user/pkg/consts"
 	"github.com/esmailemami/chess/user/pkg/validations"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -10,13 +10,14 @@ import (
 )
 
 type UserProfileOutPutModel struct {
-	ID        uuid.UUID `gorm:"id" json:"id"`
-	FirstName *string   `gorm:"first_name" json:"firstName"`
-	LastName  *string   `gorm:"last_name" json:"lastName"`
-	Mobile    *string   `gorm:"mobile" json:"mobile"`
-	Username  string    `gorm:"username" json:"username"`
-	RoleID    uuid.UUID `gorm:"role_id" json:"roleId"`
-	RoleName  string    `gorm:"role_name" json:"roleName"`
+	ID        uuid.UUID `gorm:"column:id" json:"id"`
+	FirstName *string   `gorm:"column:first_name" json:"firstName"`
+	LastName  *string   `gorm:"column:last_name" json:"lastName"`
+	Mobile    *string   `gorm:"column:mobile" json:"mobile"`
+	Username  string    `gorm:"column:username" json:"username"`
+	RoleID    uuid.UUID `gorm:"column:role_id" json:"roleId"`
+	RoleName  string    `gorm:"column:role_name" json:"roleName"`
+	Profile   string    `gorm:"column:profile" json:"profile"`
 }
 
 type UserChangeProfileInputModel struct {

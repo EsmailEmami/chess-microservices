@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	chatExchange  = "chat_user_ex"
-	mediaExchange = "media_user_ex"
+	chatExchange = "chat_user_ex"
 )
 
 func initializeChatRabbitMQ() {
@@ -25,7 +24,7 @@ type lastConnection struct {
 }
 
 func consumeLastConnection() {
-	msgsCh, err := amqp.ConsumeMessagesFromTopicWithRoutingKey("user_queue", chatExchange, "chat.last_connection")
+	msgsCh, err := amqp.ConsumeMessagesFromExchange("chat_user_queue", chatExchange, "chat_user.last_connection")
 
 	if err != nil {
 		logging.ErrorE("failed to consume rabbit MQ", err)
