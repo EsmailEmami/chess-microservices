@@ -11,6 +11,7 @@ const (
 	RoomDetail    = "room-detail"
 	UserJoined    = "user-joined"
 	UserLeft      = "user-left"
+	DeleteRoom    = "delete-room"
 )
 
 type NewMessageRequest struct {

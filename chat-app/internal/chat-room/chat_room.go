@@ -212,6 +212,21 @@ func (g *ChatRoom) SeenMessage(req *sharedWebsocket.ClientMessage[websocket.Seen
 	}
 }
 
+func (g *ChatRoom) Delete() {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.DeleteRoom, &RoomMessage{
+				RoomID: g.roomID,
+			})
+
+			g.disconnect(client)
+		}
+	}
+}
+
 func (g *ChatRoom) connect(client *sharedWebsocket.Client) {
 	userClients, ok := g.connections[client.UserID]
 	if !ok {

@@ -74,3 +74,19 @@ func ConnectPrvateRoom(roomID, userID uuid.UUID) {
 		room.Connect(client)
 	}
 }
+
+func DeleteRoom(roomID uuid.UUID) {
+	if room, ok := privateRooms[roomID]; ok {
+		room.Delete()
+		delete(privateRooms, roomID)
+
+		return
+	}
+
+	if room, ok := publicRooms[roomID]; ok {
+		room.Delete()
+		delete(publicRooms, roomID)
+
+		return
+	}
+}

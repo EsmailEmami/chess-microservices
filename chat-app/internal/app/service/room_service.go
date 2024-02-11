@@ -135,7 +135,7 @@ func (r *RoomService) GetUserRoomIDs(ctx context.Context, userID uuid.UUID, load
 
 	if err := db.Model(&models.UserRoom{}).
 		Joins("INNER JOIN chat.room on chat.room.id = chat.user_room.room_id").
-		Where("chat.user_room.user_id = ? and chat.room.is_private = ?", userID, loadPrivate).Select("chat.user_room.room_id").Find(&roomIDs).Error; err != nil {
+		Where("chat.user_room.user_id = ? AND chat.room.is_private = ? AND chat.room.deleted_at IS NULL", userID, loadPrivate).Select("chat.user_room.room_id").Find(&roomIDs).Error; err != nil {
 		return nil, errs.InternalServerErr().WithError(err)
 	}
 
@@ -260,4 +260,21 @@ func (r *RoomService) LeftRoom(ctx context.Context, roomID, userID uuid.UUID) er
 
 func (r *RoomService) getRoomCacheKey(id uuid.UUID) string {
 	return "room_" + id.String()
+}
+
+func (b *RoomService) Delete(ctx context.Context, id uuid.UUID) error {
+	db := psql.DBContext(ctx)
+
+	var room models.Room
+
+	if err := db.Model(&models.Room{}).First(&room, "id = ?", id).Error; err != nil {
+		return errs.NotFoundErr().WithError(err)
+	}
+
+	//TODO: check who is creator or admin!
+	if err := db.Delete(&room).Error; err != nil {
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	return nil
 }

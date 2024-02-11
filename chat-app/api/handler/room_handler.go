@@ -167,3 +167,27 @@ func (r *RoomHandler) LeftRoom(ctx *gin.Context, id uuid.UUID) (*handler.Respons
 
 	return handler.OKBool(), nil
 }
+
+// DeleteRoom godoc
+// @Tags room
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id   path  string  true  "id"
+// @Success 200 {object} handler.Response[uuid.UUID]
+// @Failure 400 {object} errs.Error
+// @Failure 422 {object} errs.ValidationError
+// @Router /room/delete/{id} [post]
+func (r *RoomHandler) DeleteRoom(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
+
+	err := r.roomService.Delete(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// delete room from socket
+	chatroom.DeleteRoom(id)
+
+	return handler.OKBool(), nil
+}

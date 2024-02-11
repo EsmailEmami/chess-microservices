@@ -18,4 +18,5 @@ func roomRoutes(r *gin.RouterGroup, roomService *service.RoomService) {
 	api.POST("/public", apiHandler.HandleAPI(roomHandler.CreatePublicRoom))
 	api.POST("/join/:id", apiHandler.HandleAPI(roomHandler.JoinRoom))
 	api.POST("/left/:id", apiHandler.HandleAPI(roomHandler.LeftRoom))
+	api.POST("/delete/:id", apiHandler.HandleAPI(roomHandler.DeleteRoom))
 }
