@@ -68,6 +68,6 @@ func setupSwagger(r *gin.Engine) {
 
 	docs.SwaggerInfo.Host = url
 	docs.SwaggerInfo.BasePath = "/api/v1"
-	docs.SwaggerInfo.Schemes = []string{"https", "http"}
+	docs.SwaggerInfo.Schemes = []string{"http"}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }

@@ -34,13 +34,13 @@ func NewChessHandler(chessService *service.ChessService) *ChessHandler {
 // @Failure 422 {object} errs.ValidationError
 // @Router /chess/join/{id} [post]
 func (g *ChessHandler) JoinGame(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
-	currentUser, err := g.GetUser(ctx)
+	currentUser := g.GetUser(ctx)
 
-	if err != nil {
+	if currentUser == nil {
 		return nil, errs.UnAuthorizedErr()
 	}
 
-	err = g.chessService.JoinGame(ctx, currentUser, id)
+	err := g.chessService.JoinGame(ctx, currentUser, id)
 
 	if err != nil {
 		return nil, err
@@ -64,9 +64,9 @@ func (g *ChessHandler) JoinGame(ctx *gin.Context, id uuid.UUID) (*handler.Respon
 // @Failure 422 {object} errs.ValidationError
 // @Router /chess/watch/{id} [post]
 func (g *ChessHandler) WatchGame(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
-	currentUser, err := g.GetUser(ctx)
+	currentUser := g.GetUser(ctx)
 
-	if err != nil {
+	if currentUser == nil {
 		return nil, errs.UnAuthorizedErr()
 	}
 
@@ -88,9 +88,9 @@ func (g *ChessHandler) WatchGame(ctx *gin.Context, id uuid.UUID) (*handler.Respo
 // @Failure 422 {object} errs.ValidationError
 // @Router /chess [post]
 func (g *ChessHandler) NewChess(ctx *gin.Context, req models.CreateChessInputModel) (*handler.Response[bool], error) {
-	currentUser, err := g.GetUser(ctx)
+	currentUser := g.GetUser(ctx)
 
-	if err != nil {
+	if currentUser == nil {
 		return nil, errs.UnAuthorizedErr()
 	}
 

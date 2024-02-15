@@ -30,7 +30,7 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 // @Success 200 {object} handler.Response[models.LoginOutputModel]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
-// @Router /auth/login [post]
+// @Router /login [post]
 func (a *AuthHandler) Login(c *gin.Context, req models.LoginInputModel) (*handler.Response[models.LoginOutputModel], error) {
 	// validate the model
 	if err := req.Validate(); err != nil {
@@ -57,7 +57,7 @@ func (a *AuthHandler) Login(c *gin.Context, req models.LoginInputModel) (*handle
 // @Success 200 {object} handler.Response[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
-// @Router /auth/register [post]
+// @Router /register [post]
 func (a *AuthHandler) Register(c *gin.Context, req models.RegisterInputModel) (*handler.Response[uuid.UUID], error) {
 	// validate the model
 	if err := req.Validate(); err != nil {
@@ -81,7 +81,7 @@ func (a *AuthHandler) Register(c *gin.Context, req models.RegisterInputModel) (*
 // @Success 200 {object} handler.Response[bool]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
-// @Router /auth/logout [post]
+// @Router /logout [post]
 func (a *AuthHandler) Logout(c *gin.Context) (*handler.Response[bool], error) {
 	jwtID := c.GetHeader("JwtId")
 

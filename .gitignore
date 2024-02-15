@@ -3,6 +3,7 @@ api-gateway/bin
 api-gateway/.vscode
 api-gateway/configs/app/config.yaml
 api-gateway/configs/app/config.prod.yaml
+api-gateway/docs
 
 # auth application 
 auth-app/bin

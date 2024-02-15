@@ -8,6 +8,7 @@ import (
 	"github.com/esmailemami/chess/api-gateway/api/config"
 	"github.com/esmailemami/chess/api-gateway/api/middleware"
 	"github.com/esmailemami/chess/api-gateway/api/util"
+	"github.com/esmailemami/chess/api-gateway/internal/swagger"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -21,6 +22,10 @@ func ProxyRoutes(router *mux.Router) error {
 
 	for _, proxyConfig := range config.Proxies {
 		route := router.PathPrefix(proxyConfig.Path).Subrouter()
+
+		if proxyConfig.SwaggerPath != "" {
+			swagger.ReadSwagger(proxyConfig.Target+proxyConfig.SwaggerPath, proxyConfig.Path)
+		}
 
 		// set cors middleware as default
 		route.Use(middleware.CORS)

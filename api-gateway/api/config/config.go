@@ -23,6 +23,7 @@ type RouteConfig struct {
 type ProxyConfig struct {
 	Path        string        `json:"path"`
 	Target      string        `json:"target"`
+	SwaggerPath string        `json:"swaggerPath,omitempty"`
 	Middlewares []string      `json:"middlewares"`
 	Routes      []RouteConfig `json:"routes"`
 }

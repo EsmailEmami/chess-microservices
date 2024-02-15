@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/esmailemami/chess/api-gateway/api/proxy"
+	"github.com/esmailemami/chess/api-gateway/api/swagger"
 	"github.com/esmailemami/chess/api-gateway/internal/service"
 	"github.com/esmailemami/chess/shared/consul"
 	"github.com/esmailemami/chess/shared/logging"
@@ -24,6 +25,8 @@ func main() {
 
 	// app listener
 	router := mux.NewRouter()
+
+	swagger.SetupSwagger(router)
 
 	err = proxy.ProxyRoutes(router)
 	if err != nil {

@@ -59,9 +59,9 @@ func (r *RoomHandler) CreatePrivateRoom(ctx *gin.Context, req models.CreatePriva
 		return nil, errs.ValidationErr(err)
 	}
 
-	currentUser, err := r.GetUser(ctx)
-	if err != nil {
-		return nil, errs.BadRequestErr()
+	currentUser := r.GetUser(ctx)
+	if currentUser == nil {
+		return nil, errs.UnAuthorizedErr()
 	}
 
 	room, err := r.roomService.CreatePrivateRoom(ctx, currentUser, &req)
@@ -92,9 +92,9 @@ func (r *RoomHandler) CreatePublicRoom(ctx *gin.Context, req models.CreatePublic
 		return nil, errs.ValidationErr(err)
 	}
 
-	currentUser, err := r.GetUser(ctx)
-	if err != nil {
-		return nil, errs.BadRequestErr()
+	currentUser := r.GetUser(ctx)
+	if currentUser == nil {
+		return nil, errs.UnAuthorizedErr()
 	}
 
 	room, err := r.roomService.CreatePublicRoomRoom(ctx, currentUser, &req)
@@ -123,12 +123,12 @@ func (r *RoomHandler) CreatePublicRoom(ctx *gin.Context, req models.CreatePublic
 // @Failure 422 {object} errs.ValidationError
 // @Router /room/join/{id} [post]
 func (r *RoomHandler) JoinRoom(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
-	currentUser, err := r.GetUser(ctx)
-	if err != nil {
-		return nil, errs.BadRequestErr()
+	currentUser := r.GetUser(ctx)
+	if currentUser == nil {
+		return nil, errs.UnAuthorizedErr()
 	}
 
-	err = r.roomService.JoinRoom(ctx, id, currentUser.ID)
+	err := r.roomService.JoinRoom(ctx, id, currentUser.ID)
 
 	if err != nil {
 		return nil, err
@@ -151,12 +151,12 @@ func (r *RoomHandler) JoinRoom(ctx *gin.Context, id uuid.UUID) (*handler.Respons
 // @Failure 422 {object} errs.ValidationError
 // @Router /room/left/{id} [post]
 func (r *RoomHandler) LeftRoom(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
-	currentUser, err := r.GetUser(ctx)
-	if err != nil {
-		return nil, errs.BadRequestErr()
+	currentUser := r.GetUser(ctx)
+	if currentUser == nil {
+		return nil, errs.UnAuthorizedErr()
 	}
 
-	err = r.roomService.LeftRoom(ctx, id, currentUser.ID)
+	err := r.roomService.LeftRoom(ctx, id, currentUser.ID)
 
 	if err != nil {
 		return nil, err

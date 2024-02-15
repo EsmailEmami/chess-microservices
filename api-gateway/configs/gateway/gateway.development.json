@@ -3,6 +3,7 @@
     {
       "path": "/auth",
       "target": "http://localhost:3001",
+      "swaggerPath" : "/swagger/doc.json",
       "middlewares": ["execute-duration"],
       "routes": [
         {
@@ -14,6 +15,7 @@
     {
       "path": "/game",
       "target": "http://localhost:3002",
+      "swaggerPath" : "/swagger/doc.json",
       "middlewares": ["execute-duration","authentication"],
       "routes": [
         {
@@ -25,6 +27,7 @@
     {
       "path": "/user",
       "target": "http://localhost:3004",
+      "swaggerPath" : "/swagger/doc.json",
       "middlewares": ["execute-duration","authentication"],
       "routes": [
         {
@@ -36,6 +39,7 @@
     {
       "path": "/chat",
       "target": "http://localhost:3005",
+      "swaggerPath" : "/swagger/doc.json",
       "middlewares": ["execute-duration","authentication"],
       "routes": [
         {
@@ -47,6 +51,7 @@
     {
       "path": "/media",
       "target": "http://localhost:3006",
+      "swaggerPath" : "/swagger/doc.json",
       "middlewares": ["execute-duration"],
       "routes": [
         {
