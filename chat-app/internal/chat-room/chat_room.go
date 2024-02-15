@@ -6,7 +6,8 @@ import (
 
 	"github.com/esmailemami/chess/chat/internal/app/models"
 	"github.com/esmailemami/chess/chat/internal/app/service"
-	"github.com/esmailemami/chess/chat/pkg/websocket"
+	"github.com/esmailemami/chess/chat/internal/websocket"
+
 	"github.com/esmailemami/chess/shared/database/redis"
 	sharedModels "github.com/esmailemami/chess/shared/models"
 	sharedWebsocket "github.com/esmailemami/chess/shared/websocket"
@@ -22,9 +23,11 @@ type ChatRoom struct {
 
 	roomID uuid.UUID
 	wss    sharedWebsocket.Server
+
+	isPublic bool
 }
 
-func NewChatRoom(roomID uuid.UUID, wss sharedWebsocket.Server) *ChatRoom {
+func NewChatRoom(roomID uuid.UUID, isPublic bool, wss sharedWebsocket.Server) *ChatRoom {
 	var (
 		redisCache     = redis.GetConnection()
 		messageService = service.NewMessageService(redisCache)
@@ -38,6 +41,7 @@ func NewChatRoom(roomID uuid.UUID, wss sharedWebsocket.Server) *ChatRoom {
 		roomService:    roomService,
 		roomID:         roomID,
 		wss:            wss,
+		isPublic:       isPublic,
 	}
 }
 
@@ -223,6 +227,59 @@ func (g *ChatRoom) Delete() {
 			})
 
 			g.disconnect(client)
+		}
+	}
+}
+
+func (g *ChatRoom) AvatarChanged(avatar string) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.RoomAvatarChanged, &RoomMessage{
+				RoomID: g.roomID,
+				Data: &RoomAvatarChangedModel{
+					Avatar: avatar,
+				},
+			})
+		}
+	}
+}
+
+func (g *ChatRoom) UserProfileChanged(userID uuid.UUID, profile string) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	// send the profile changed to all users
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.UserProfileChanged, &RoomMessage{
+				RoomID: g.roomID,
+				Data: &UserProfileChangedModel{
+					UserID:  userID,
+					Profile: profile,
+				},
+			})
+		}
+	}
+
+	// if the room is private and both users are connected, the room avatar must be change too
+	if !g.isPublic && len(g.connections) == 2 {
+		for id, clients := range g.connections {
+			if id == userID {
+				continue
+			}
+
+			// send avatar changed message
+			for _, client := range clients {
+				g.wss.SendMessageToClient(client.SessionID, websocket.RoomAvatarChanged, &RoomMessage{
+					RoomID: g.roomID,
+					Data: &RoomAvatarChangedModel{
+						Avatar: profile,
+					},
+				})
+			}
 		}
 	}
 }

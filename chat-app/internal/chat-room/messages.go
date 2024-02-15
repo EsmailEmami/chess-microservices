@@ -15,3 +15,12 @@ type RoomOutPutModel struct {
 	Room     *models.RoomOutPutModel   `json:"room"`
 	Messages []models.MessageOutPutDto `json:"messages"`
 }
+
+type RoomAvatarChangedModel struct {
+	Avatar string `json:"avatar"`
+}
+
+type UserProfileChangedModel struct {
+	UserID  uuid.UUID `json:"userID"`
+	Profile string    `json:"profile"`
+}

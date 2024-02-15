@@ -278,3 +278,23 @@ func (b *RoomService) Delete(ctx context.Context, id uuid.UUID) error {
 
 	return nil
 }
+
+func (r *RoomService) UpdateAvatar(ctx context.Context, roomID uuid.UUID, avatar string) error {
+	db := psql.DBContext(ctx)
+
+	var room models.Room
+
+	if err := db.Model(&models.Room{}).First(&room, "id = ?", roomID).Error; err != nil {
+		return errs.NotFoundErr().WithError(err)
+	}
+
+	if room.IsPrivate {
+		return errs.BadRequestErr().Msg("room is not public")
+	}
+
+	if err := db.Model(&models.Room{}).Where("id = ?", roomID).UpdateColumn("avatar", avatar).Error; err != nil {
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	return nil
+}

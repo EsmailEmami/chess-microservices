@@ -11,24 +11,32 @@ import (
 
 func Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("UserId") == "" {
+			errs.ErrorHandler(w, errs.UnAuthorizedErr())
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func GetUserMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := util.GetTokenString(r)
-		if err != nil {
-			errs.ErrorHandler(w, errs.UnAuthorizedErr())
-			return
+
+		if err == nil {
+			authService := service.GetAuthGrpcClient()
+
+			resp, err := authService.Authenticate(r.Context(), &grpc.AuthenticateRequest{
+				Token: token,
+			})
+
+			if err == nil {
+				r.Header.Add("UserId", resp.UserId)
+				r.Header.Add("JwtId", resp.UserId)
+			}
 		}
 
-		authService := service.GetAuthGrpcClient()
-
-		resp, err := authService.Authenticate(r.Context(), &grpc.AuthenticateRequest{
-			Token: token,
-		})
-
-		if err != nil {
-			errs.ErrorHandler(w, errs.UnAuthorizedErr())
-			return
-		}
-
-		r.Header.Add("UserId", resp.UserId)
 		next.ServeHTTP(w, r)
 	})
 }

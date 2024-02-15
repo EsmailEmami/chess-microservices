@@ -1,25 +1,27 @@
-package service
+package grpc
 
 import (
 	"context"
 
-	"github.com/esmailemami/chess/auth/internal/app/grpc"
+	"github.com/esmailemami/chess/auth/internal/app/service"
+	"github.com/esmailemami/chess/auth/proto"
+
 	"github.com/google/uuid"
 )
 
 type AuthGrpcService struct {
-	grpc.UnimplementedAuthServiceServer
+	proto.UnimplementedAuthServiceServer
 
-	authService *AuthService
+	authService *service.AuthService
 }
 
-func NewAuthGrpcService(authService *AuthService) grpc.AuthServiceServer {
+func NewAuthGrpcService(authService *service.AuthService) proto.AuthServiceServer {
 	return &AuthGrpcService{
 		authService: authService,
 	}
 }
 
-func (a *AuthGrpcService) Authenticate(ctx context.Context, req *grpc.AuthenticateRequest) (*grpc.AuthenticateResponse, error) {
+func (a *AuthGrpcService) Authenticate(ctx context.Context, req *proto.AuthenticateRequest) (*proto.AuthenticateResponse, error) {
 	token, err := a.authService.ParseTokenString(req.Token, true)
 	if err != nil {
 		return nil, err
@@ -36,7 +38,7 @@ func (a *AuthGrpcService) Authenticate(ctx context.Context, req *grpc.Authentica
 		return nil, err
 	}
 
-	return &grpc.AuthenticateResponse{
+	return &proto.AuthenticateResponse{
 		UserId:   user.ID.String(),
 		Username: user.Username,
 		FirstName: func() string {
@@ -51,5 +53,6 @@ func (a *AuthGrpcService) Authenticate(ctx context.Context, req *grpc.Authentica
 			}
 			return ""
 		}(),
+		JwtId: token.JwtID(),
 	}, nil
 }

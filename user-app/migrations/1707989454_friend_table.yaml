@@ -1,0 +1,17 @@
+---
+up: |
+  CREATE TABLE public.friend (
+    id    			    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL,
+    friend_id uuid NOT NULL,
+ 
+    created_at 		  timestamptz default now(),
+    updated_at 		  timestamptz default now(),
+    deleted_at		  timestamptz null,
+
+    CONSTRAINT fk__friend_user_user_id FOREIGN KEY (user_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk__friend_user_friend_id FOREIGN KEY (friend_id) REFERENCES public.user (id) ON UPDATE CASCADE ON DELETE RESTRICT
+  );
+
+down: |
+  DROP TABLE public.friend;

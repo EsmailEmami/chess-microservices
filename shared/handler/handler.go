@@ -15,13 +15,8 @@ const (
 type Handler struct {
 }
 
-func (*Handler) GetUser(c *gin.Context) (*models.User, error) {
-	user := c.Value("user").(*models.User)
-
-	if user == nil {
-		return nil, errs.NotFoundErr()
-	}
-	return user, nil
+func (*Handler) GetUser(c *gin.Context) *models.User {
+	return c.Value("user").(*models.User)
 }
 
 func (*Handler) GetFiles(c *gin.Context, maximumSize int64) ([]*multipart.FileHeader, error) {

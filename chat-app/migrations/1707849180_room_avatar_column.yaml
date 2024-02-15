@@ -1,0 +1,8 @@
+---
+up: |
+  ALTER TABLE chat.room 
+    ADD avatar VARCHAR(512) NULL;
+
+down: |
+  ALTER TABLE chat.room 
+    DROP COLUMN avatar;

@@ -25,6 +25,7 @@ func Initialize() {
 
 	// initialize exchanges and queues
 	initializeUserRabbitMQ()
+	initializeChatRabbitMQ()
 
 	logging.Info("rabbit MQ connected")
 }

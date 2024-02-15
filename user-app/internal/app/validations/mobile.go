@@ -4,7 +4,7 @@ import (
 	"errors"
 	"regexp"
 
-	"github.com/esmailemami/chess/user/pkg/consts"
+	"github.com/esmailemami/chess/user/internal/consts"
 )
 
 func IsValidMobileNumber() func(value interface{}) error {

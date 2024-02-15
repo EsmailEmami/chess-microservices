@@ -11,6 +11,8 @@ func Initialize(r *gin.Engine) {
 	route.Use(middleware.Authorization())
 
 	userService := service.NewUserService()
+	friendService := service.NewFriendService()
 
 	profileRoutes(route, userService)
+	friendRoutes(route, friendService)
 }

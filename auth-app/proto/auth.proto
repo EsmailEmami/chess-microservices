@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/esmailemami/chess/auth/internal/app/grpc";
+option go_package = "github.com/esmailemami/chess/auth/proto";
 
 service AuthService {
 	rpc Authenticate(AuthenticateRequest) returns(AuthenticateResponse);
@@ -15,4 +15,5 @@ message AuthenticateResponse {
 	string FirstName = 2;
 	string LastName = 3;
 	string Username = 4;
+	string JwtId = 5;
 }

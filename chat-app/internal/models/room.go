@@ -14,6 +14,7 @@ type Room struct {
 	IsPrivate bool       `gorm:"is_private" json:"isPrivate"`
 	Users     []UserRoom `gorm:"foreignKey:room_id;references:id;" json:"users"`
 	Messages  []Message  `gorm:"foreignKey:room_id;references:id;" json:"messages"`
+	Avatar    string     `gorm:"column:avatar" json:"avatar"`
 }
 
 func (Room) TableName() string {

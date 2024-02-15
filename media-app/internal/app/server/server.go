@@ -6,7 +6,7 @@ import (
 
 	"github.com/esmailemami/chess/media/api/routes"
 	"github.com/esmailemami/chess/media/docs"
-	"github.com/esmailemami/chess/media/internal/rabbitmq"
+	"github.com/esmailemami/chess/media/pkg/rabbitmq"
 	"github.com/esmailemami/chess/shared/consul"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"

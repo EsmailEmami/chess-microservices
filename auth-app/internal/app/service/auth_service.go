@@ -5,9 +5,10 @@ import (
 	"time"
 
 	appmodels "github.com/esmailemami/chess/auth/internal/app/models"
+	"github.com/esmailemami/chess/auth/internal/consts"
 	"github.com/esmailemami/chess/auth/internal/keys"
 	"github.com/esmailemami/chess/auth/internal/models"
-	"github.com/esmailemami/chess/auth/pkg/consts"
+
 	"github.com/esmailemami/chess/shared/database/psql"
 	"github.com/esmailemami/chess/shared/errs"
 	"github.com/esmailemami/chess/shared/logging"
@@ -210,4 +211,16 @@ func (a *AuthService) Login(ctx context.Context, req *appmodels.LoginInputModel)
 	tx.Commit()
 
 	return output, nil
+}
+
+func (a *AuthService) RevokeToken(ctx context.Context, jwtID uuid.UUID) error {
+	db := psql.DBContext(ctx)
+
+	if err := db.Model(&models.AuthToken{}).
+		Where("id = ?", jwtID).
+		UpdateColumn("revoked", true).Error; err != nil {
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	return nil
 }

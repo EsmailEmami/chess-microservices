@@ -2,7 +2,7 @@ package chatroom
 
 import (
 	"github.com/esmailemami/chess/chat/internal/models"
-	"github.com/esmailemami/chess/chat/pkg/websocket"
+	"github.com/esmailemami/chess/chat/internal/websocket"
 	sharedModels "github.com/esmailemami/chess/shared/models"
 	"github.com/google/uuid"
 )
@@ -17,13 +17,13 @@ var (
 func initializeRooms() {
 	publicRooms = make(map[uuid.UUID]*ChatRoom)
 	privateRooms = make(map[uuid.UUID]*ChatRoom)
-	globalRoom = NewChatRoom(models.GlobalRoomID, websocket.GlobalRoomWss)
+	globalRoom = NewChatRoom(models.GlobalRoomID, true, websocket.GlobalRoomWss)
 }
 
 func getPublicChatRoom(id uuid.UUID) *ChatRoom {
 	room, ok := publicRooms[id]
 	if !ok {
-		room = NewChatRoom(id, websocket.PublicChatRoomWss)
+		room = NewChatRoom(id, true, websocket.PublicChatRoomWss)
 		publicRooms[id] = room
 	}
 
@@ -33,7 +33,7 @@ func getPublicChatRoom(id uuid.UUID) *ChatRoom {
 func getPrivateChatRoom(id uuid.UUID) *ChatRoom {
 	room, ok := privateRooms[id]
 	if !ok {
-		room = NewChatRoom(id, websocket.PrivateChatRoomWss)
+		room = NewChatRoom(id, false, websocket.PrivateChatRoomWss)
 		privateRooms[id] = room
 	}
 

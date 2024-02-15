@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/esmailemami/chess/shared/errs"
 	"github.com/esmailemami/chess/shared/handler"
 	"github.com/esmailemami/chess/user/internal/app/models"
 	"github.com/esmailemami/chess/user/internal/app/service"
@@ -30,9 +31,9 @@ func NewProfileHandler(userService *service.UserService) *ProfileHandler {
 // @Failure 422 {object} errs.ValidationError
 // @Router /profile [get]
 func (u *ProfileHandler) Profile(c *gin.Context) (*handler.Response[models.UserProfileOutPutModel], error) {
-	user, err := u.GetUser(c)
-	if err != nil {
-		return nil, err
+	user := u.GetUser(c)
+	if user == nil {
+		return nil, errs.UnAuthorizedErr()
 	}
 
 	profile, err := u.userService.GetProfile(c, user.ID)
@@ -55,12 +56,12 @@ func (u *ProfileHandler) Profile(c *gin.Context) (*handler.Response[models.UserP
 // @Failure 422 {object} errs.ValidationError
 // @Router /profile/change-password [post]
 func (u *ProfileHandler) ChangePassword(c *gin.Context, req models.UserChangePasswordInputModel) (*handler.Response[uuid.UUID], error) {
-	user, err := u.GetUser(c)
-	if err != nil {
-		return nil, err
+	user := u.GetUser(c)
+	if user == nil {
+		return nil, errs.UnAuthorizedErr()
 	}
 
-	err = u.userService.ChangePassword(c, user.ID, &req)
+	err := u.userService.ChangePassword(c, user.ID, &req)
 
 	if err != nil {
 		return nil, err
@@ -80,14 +81,13 @@ func (u *ProfileHandler) ChangePassword(c *gin.Context, req models.UserChangePas
 // @Failure 422 {object} errs.ValidationError
 // @Router /profile [post]
 func (u *ProfileHandler) ChangeProfile(c *gin.Context, req models.UserChangeProfileInputModel) (*handler.Response[models.UserProfileOutPutModel], error) {
-	user, err := u.GetUser(c)
-	if err != nil {
-		return nil, err
+	user := u.GetUser(c)
+	if user == nil {
+		return nil, errs.UnAuthorizedErr()
 	}
-
 	req.ID = user.ID
 
-	err = u.userService.ChangeProfile(c, user.ID, &req)
+	err := u.userService.ChangeProfile(c, user.ID, &req)
 
 	if err != nil {
 		return nil, err

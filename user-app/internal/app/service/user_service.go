@@ -10,9 +10,9 @@ import (
 	sharedModels "github.com/esmailemami/chess/shared/models"
 	"github.com/esmailemami/chess/shared/service"
 	appModels "github.com/esmailemami/chess/user/internal/app/models"
+	"github.com/esmailemami/chess/user/internal/consts"
 	"github.com/esmailemami/chess/user/internal/models"
 	"github.com/esmailemami/chess/user/internal/util"
-	"github.com/esmailemami/chess/user/pkg/consts"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )

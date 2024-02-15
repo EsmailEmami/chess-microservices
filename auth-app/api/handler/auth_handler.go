@@ -10,6 +10,8 @@ import (
 )
 
 type AuthHandler struct {
+	handler.Handler
+
 	authService *service.AuthService
 }
 
@@ -69,4 +71,29 @@ func (a *AuthHandler) Register(c *gin.Context, req models.RegisterInputModel) (*
 	}
 
 	return handler.OK(&resp.ID), nil
+}
+
+// Logout godoc
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} handler.Response[bool]
+// @Failure 400 {object} errs.Error
+// @Failure 422 {object} errs.ValidationError
+// @Router /auth/logout [post]
+func (a *AuthHandler) Logout(c *gin.Context) (*handler.Response[bool], error) {
+	jwtID := c.GetHeader("JwtId")
+
+	if jwtID != "" {
+		a.authService.RevokeToken(c, uuid.MustParse(jwtID))
+	}
+
+	a.removeAuthorizationCookie(c)
+
+	return handler.OKBool(), nil
+}
+
+func (a *AuthHandler) removeAuthorizationCookie(ctx *gin.Context) {
+	ctx.SetCookie("Authorization", "", 0, "/", "", true, true)
 }

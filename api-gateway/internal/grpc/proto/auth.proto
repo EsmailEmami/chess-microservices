@@ -15,4 +15,5 @@ message AuthenticateResponse {
 	string FirstName = 2;
 	string LastName = 3;
 	string Username = 4;
+	string JwtId = 5;
 }

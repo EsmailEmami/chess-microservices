@@ -21,4 +21,5 @@ func Initialize(r *gin.Engine) {
 	anonapi := route.Group("")
 	anonapi.POST("/login", apihandler.HandleAPI(authHandler.Login))
 	anonapi.POST("/register", apihandler.HandleAPI(authHandler.Register))
+	anonapi.POST("/logout", apihandler.HandleAPI(authHandler.Logout))
 }

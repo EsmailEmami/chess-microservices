@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/esmailemami/chess/auth/pkg/consts"
+	"github.com/esmailemami/chess/auth/internal/consts"
 	baseconsts "github.com/esmailemami/chess/shared/consts"
 	"github.com/esmailemami/chess/shared/models"
 	"github.com/esmailemami/chess/shared/validations"

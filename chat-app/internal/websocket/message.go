@@ -3,15 +3,17 @@ package websocket
 import "github.com/google/uuid"
 
 const (
-	NewMessage    = "new-message"
-	EditMessage   = "edit-message"
-	DeleteMessage = "delete-message"
-	SeenMessage   = "seen-message"
-	MessagesList  = "messages-list"
-	RoomDetail    = "room-detail"
-	UserJoined    = "user-joined"
-	UserLeft      = "user-left"
-	DeleteRoom    = "delete-room"
+	NewMessage         = "new-message"
+	EditMessage        = "edit-message"
+	DeleteMessage      = "delete-message"
+	SeenMessage        = "seen-message"
+	MessagesList       = "messages-list"
+	RoomDetail         = "room-detail"
+	UserJoined         = "user-joined"
+	UserLeft           = "user-left"
+	DeleteRoom         = "delete-room"
+	RoomAvatarChanged  = "room-avatar-changed"
+	UserProfileChanged = "user-profile-changed"
 )
 
 type NewMessageRequest struct {

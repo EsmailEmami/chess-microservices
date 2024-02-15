@@ -7,8 +7,9 @@ import (
 
 	"github.com/esmailemami/chess/auth/api/routes"
 	"github.com/esmailemami/chess/auth/docs"
-	appGrpc "github.com/esmailemami/chess/auth/internal/app/grpc"
 	"github.com/esmailemami/chess/auth/internal/app/service"
+	appGrpc "github.com/esmailemami/chess/auth/pkg/grpc"
+	"github.com/esmailemami/chess/auth/proto"
 	"github.com/esmailemami/chess/shared/consul"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -51,7 +52,7 @@ func runGrpcServer() {
 		authService = service.NewAuthService(userService)
 	)
 	server := grpc.NewServer()
-	appGrpc.RegisterAuthServiceServer(server, service.NewAuthGrpcService(authService))
+	proto.RegisterAuthServiceServer(server, appGrpc.NewAuthGrpcService(authService))
 
 	fmt.Println("grpc started on port", port)
 	if err := server.Serve(net); err != nil {

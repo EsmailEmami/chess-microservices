@@ -1,8 +1,11 @@
 package chatroom
 
 import (
+	"context"
+
 	"github.com/esmailemami/chess/chat/internal/app/service"
-	"github.com/esmailemami/chess/chat/pkg/websocket"
+	"github.com/esmailemami/chess/chat/internal/websocket"
+	"github.com/esmailemami/chess/chat/pkg/rabbitmq"
 	"github.com/esmailemami/chess/shared/database/redis"
 	"github.com/esmailemami/chess/shared/logging"
 )
@@ -72,6 +75,19 @@ func runPublicChatRoom() {
 			if ok {
 				room.DeleteMessage(req)
 			}
+		case req := <-rabbitmq.PublicRoomProfileChangedCh:
+			room, ok := publicRooms[req.RoomID]
+			if ok {
+				room.AvatarChanged(req.ProfilePath)
+			}
+		case req := <-rabbitmq.UserProfileChangedCh:
+			publicRooms, err := roomService.GetUserRoomIDs(context.Background(), req.UserID, false)
+			if err != nil {
+				logging.ErrorE("failed to get user rooms", err)
+			}
+			for _, roomID := range publicRooms {
+				getPublicChatRoom(roomID).UserProfileChanged(req.UserID, req.ProfilePath)
+			}
 		}
 	}
 }
@@ -121,6 +137,17 @@ func runPrivateChatRoom() {
 			if ok {
 				room.SeenMessage(req)
 			}
+			// case req := <-rabbitmq.UserProfileChangedCh:
+			// 	logging.Debug("private receiver worked")
+
+			// 	privateRooms, err := roomService.GetUserRoomIDs(context.Background(), req.UserID, false)
+			// 	if err != nil {
+			// 		logging.ErrorE("failed to get user rooms", err)
+			// 	}
+
+			// 	for _, roomID := range privateRooms {
+			// 		getPrivateChatRoom(roomID).UserProfileChanged(req.UserID, req.ProfilePath)
+			// 	}
 		}
 	}
 }

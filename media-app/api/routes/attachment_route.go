@@ -14,4 +14,5 @@ func attachmentRoutes(r *gin.RouterGroup, attachmentService *service.AttachmentS
 	attachmentHandler := handler.NewAttachmentHandler(attachmentService)
 
 	api.POST("/upload/profile/:id", apiHandler.HandleAPI(attachmentHandler.UploadProile))
+	api.POST("/upload/room/avatar/:id", apiHandler.HandleAPI(attachmentHandler.UploadRoomAvatar))
 }
