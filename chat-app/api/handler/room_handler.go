@@ -191,3 +191,29 @@ func (r *RoomHandler) DeleteRoom(ctx *gin.Context, id uuid.UUID) (*handler.Respo
 
 	return handler.OKBool(), nil
 }
+
+// EditRoom godoc
+// @Tags room
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id   path  string  true  "id"
+// @Param input   body  models.EditRoomModel  true  "input model"
+// @Success 200 {object} handler.Response[bool]
+// @Failure 400 {object} errs.Error
+// @Failure 422 {object} errs.ValidationError
+// @Router /room/edit/{id} [post]
+func (r *RoomHandler) EditRoom(ctx *gin.Context, id uuid.UUID, req models.EditRoomModel) (*handler.Response[bool], error) {
+	if err := req.Validate(); err != nil {
+		return nil, errs.ValidationErr(err)
+	}
+
+	if err := r.roomService.EditRoom(ctx, id, &req); err != nil {
+		return nil, err
+	}
+
+	// jnotify the connected clients to get last update of room
+	chatroom.RoomEdited(id)
+
+	return handler.OKBool(), nil
+}

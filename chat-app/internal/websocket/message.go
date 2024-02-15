@@ -14,6 +14,7 @@ const (
 	DeleteRoom         = "delete-room"
 	RoomAvatarChanged  = "room-avatar-changed"
 	UserProfileChanged = "user-profile-changed"
+	EditRoom           = "edit-room"
 )
 
 type NewMessageRequest struct {

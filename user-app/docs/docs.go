@@ -406,6 +406,9 @@ const docTemplate = `{
         "models.UserChangeProfileInputModel": {
             "type": "object",
             "properties": {
+                "bio": {
+                    "type": "string"
+                },
                 "firstName": {
                     "type": "string"
                 },
@@ -423,6 +426,9 @@ const docTemplate = `{
         "models.UserProfileOutPutModel": {
             "type": "object",
             "properties": {
+                "bio": {
+                    "type": "string"
+                },
                 "firstName": {
                     "type": "string"
                 },

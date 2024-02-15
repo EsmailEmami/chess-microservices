@@ -74,6 +74,7 @@ type RoomUserOutPutModel struct {
 	FirstName *string   `json:"firstName"`
 	LastName  *string   `json:"lastName"`
 	Username  string    `json:"username"`
+	Profile   string    `json:"profile"`
 }
 
 type RoomQueryParams struct {
@@ -87,4 +88,22 @@ type RoomQueryParams struct {
 type RoomsOutPutModel struct {
 	ID   uuid.UUID `json:"id"`
 	Name string    `json:"name"`
+}
+
+type EditRoomModel struct {
+	Name string `json:"name"`
+}
+
+func (model EditRoomModel) Validate() error {
+	return validation.ValidateStruct(
+		&model,
+		validation.Field(
+			&model.Name,
+			validation.Required.Error(baseconsts.Required),
+		),
+	)
+}
+
+func (c *EditRoomModel) MergeWithDbModel(dbData *models.Room) {
+	dbData.Name = c.Name
 }

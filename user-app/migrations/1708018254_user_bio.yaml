@@ -1,0 +1,8 @@
+---
+up: |
+  ALTER TABLE public.user
+    ADD COLUMN bio VARCHAR(100) NULL;
+
+down: |
+  ALTER TABLE   public.user
+    DROP COLUMN bio;

@@ -90,3 +90,9 @@ func DeleteRoom(roomID uuid.UUID) {
 		return
 	}
 }
+
+func RoomEdited(roomID uuid.UUID) {
+	if room, ok := publicRooms[roomID]; ok {
+		room.Edit()
+	}
+}

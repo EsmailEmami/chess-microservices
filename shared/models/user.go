@@ -13,6 +13,7 @@ type User struct {
 	RoleID    uuid.UUID `gorm:"role_id" json:"roleId"`
 	Role      *Role     `gorm:"foreignKey:role_id;references:id" json:"role"`
 	Enabled   bool      `gorm:"enabled" json:"enabled"`
+	Profile   string    `gorm:"column:profile" json:"profile"`
 }
 
 func (User) TableName() string {

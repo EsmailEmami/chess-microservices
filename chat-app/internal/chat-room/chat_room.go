@@ -6,6 +6,7 @@ import (
 
 	"github.com/esmailemami/chess/chat/internal/app/models"
 	"github.com/esmailemami/chess/chat/internal/app/service"
+	"github.com/esmailemami/chess/chat/internal/util"
 	"github.com/esmailemami/chess/chat/internal/websocket"
 
 	"github.com/esmailemami/chess/shared/database/redis"
@@ -82,6 +83,7 @@ func (g *ChatRoom) JoinUser(user *sharedModels.User) {
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Username:  user.Username,
+		Profile:   util.FilePathPrefix(user.Profile),
 	}
 
 	for _, clients := range g.connections {
@@ -108,6 +110,7 @@ func (g *ChatRoom) LeftUser(user *sharedModels.User) {
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Username:  user.Username,
+		Profile:   util.FilePathPrefix(user.Profile),
 	}
 
 	for _, clients := range g.connections {
@@ -227,6 +230,26 @@ func (g *ChatRoom) Delete() {
 			})
 
 			g.disconnect(client)
+		}
+	}
+}
+
+func (g *ChatRoom) Edit() {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	room, err := g.roomService.Get(context.Background(), g.roomID)
+
+	if err != nil {
+		return
+	}
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.EditRoom, &RoomMessage{
+				RoomID: g.roomID,
+				Data:   room,
+			})
 		}
 	}
 }

@@ -32,6 +32,15 @@ definitions:
       total:
         type: integer
     type: object
+  handler.Response-bool:
+    properties:
+      data:
+        type: boolean
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
   handler.Response-handler_ListResponse-models_RoomsOutPutModel:
     properties:
       data:
@@ -63,6 +72,11 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  models.EditRoomModel:
+    properties:
+      name:
+        type: string
     type: object
   models.RoomsOutPutModel:
     properties:
@@ -127,6 +141,41 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handler.Response-uuid_UUID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.ValidationError'
+      security:
+      - Bearer: []
+      tags:
+      - room
+  /room/edit/{id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: input model
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.EditRoomModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-bool'
         "400":
           description: Bad Request
           schema:

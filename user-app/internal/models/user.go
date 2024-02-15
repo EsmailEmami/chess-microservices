@@ -10,7 +10,7 @@ type User struct {
 	models.User
 
 	LastConnection time.Time `gorm:"column:last_connection" json:"lastConnection"`
-	Profile        string    `gorm:"column:profile" json:"profile"`
+	Bio            string    `gorm:"column:bio" json:"bio"`
 
 	Friends []Friend `gorm:"foreignKey:user_id;references:id;" json:"friends"`
 }

@@ -6,6 +6,7 @@ import (
 
 	appModels "github.com/esmailemami/chess/chat/internal/app/models"
 	"github.com/esmailemami/chess/chat/internal/models"
+	"github.com/esmailemami/chess/chat/internal/util"
 	"github.com/esmailemami/chess/shared/database/psql"
 	"github.com/esmailemami/chess/shared/database/redis"
 	"github.com/esmailemami/chess/shared/errs"
@@ -152,6 +153,30 @@ func (r *RoomService) Get(ctx context.Context, id uuid.UUID) (*appModels.RoomOut
 	return r.setRoomCache(ctx, id)
 }
 
+func (r *RoomService) EditRoom(ctx context.Context, id uuid.UUID, req *appModels.EditRoomModel) error {
+	db := psql.DBContext(ctx)
+
+	var room models.Room
+
+	if err := db.First(&room, "id = ?", id).Error; err != nil {
+		return errs.NotFoundErr().WithError(err)
+	}
+
+	if room.IsPrivate {
+		return errs.BadRequestErr().Msg("room is not public")
+	}
+
+	req.MergeWithDbModel(&room)
+
+	if err := db.Save(&room).Error; err != nil {
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	r.setRoomCache(ctx, id)
+
+	return nil
+}
+
 func (r *RoomService) setRoomCache(ctx context.Context, id uuid.UUID) (*appModels.RoomOutPutModel, error) {
 	db := psql.DBContext(ctx)
 
@@ -176,6 +201,7 @@ func (r *RoomService) setRoomCache(ctx context.Context, id uuid.UUID) (*appModel
 			FirstName: userRoom.User.FirstName,
 			LastName:  userRoom.User.LastName,
 			Username:  userRoom.User.Username,
+			Profile:   util.FilePathPrefix(userRoom.User.Profile),
 		}
 	}
 

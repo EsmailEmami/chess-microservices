@@ -18,6 +18,7 @@ type UserProfileOutPutModel struct {
 	RoleID    uuid.UUID `gorm:"column:role_id" json:"roleId"`
 	RoleName  string    `gorm:"column:role_name" json:"roleName"`
 	Profile   string    `gorm:"column:profile" json:"profile"`
+	Bio       string    `gorm:"column:bio" json:"bio"`
 }
 
 type UserChangeProfileInputModel struct {
@@ -26,6 +27,7 @@ type UserChangeProfileInputModel struct {
 	LastName  *string   `json:"lastName"`
 	Mobile    *string   `json:"mobile"`
 	Username  string    `json:"username"`
+	Bio       string    `json:"bio"`
 }
 
 func (model UserChangeProfileInputModel) Validate() error {
@@ -48,4 +50,5 @@ func (model UserChangeProfileInputModel) MergeDBModel(dbData *models.User) {
 	dbData.LastName = model.FirstName
 	dbData.Username = model.Username
 	dbData.Mobile = model.Mobile
+	dbData.Bio = model.Bio
 }

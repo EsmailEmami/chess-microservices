@@ -28,7 +28,7 @@ func NewUserService() *UserService {
 func (u *UserService) GetProfile(ctx context.Context, id uuid.UUID) (*appModels.UserProfileOutPutModel, error) {
 	db := psql.DBContext(ctx).Table(`"user" u`).
 		Joins("INNER JOIN role r ON r.id = u.role_id").
-		Select("u.id, u.first_name, u.last_name, u.mobile, u.username, u.role_id, r.name as role_name, u.profile").
+		Select("u.id, u.first_name, u.last_name, u.mobile, u.username, u.role_id, r.name as role_name, u.profile, u.bio").
 		Where("u.deleted_at is null").
 		Where("u.id = ?", id)
 
