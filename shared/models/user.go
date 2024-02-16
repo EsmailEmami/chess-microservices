@@ -19,3 +19,14 @@ type User struct {
 func (User) TableName() string {
 	return "public.user"
 }
+
+func (u User) IsAdmin() bool {
+	if u.IsRoot() {
+		return true
+	}
+	return u.RoleID == ROLE_ADMIN
+}
+
+func (u User) IsRoot() bool {
+	return u.RoleID == ROLE_ROOT
+}

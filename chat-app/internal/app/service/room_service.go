@@ -143,14 +143,33 @@ func (r *RoomService) GetUserRoomIDs(ctx context.Context, userID uuid.UUID, load
 	return roomIDs, nil
 }
 
-func (r *RoomService) Get(ctx context.Context, id uuid.UUID) (*appModels.RoomOutPutModel, error) {
-	var room appModels.RoomOutPutModel
+func (r *RoomService) Get(ctx context.Context, id uuid.UUID, userID *uuid.UUID) (*appModels.RoomOutPutModel, error) {
+	room := &appModels.RoomOutPutModel{}
 
-	if err := r.cache.UnmarshalToObject(r.getRoomCacheKey(id), &room); err == nil {
-		return &room, nil
+	if err := r.cache.UnmarshalToObject(r.getRoomCacheKey(id), room); err == nil {
+		return room, nil
 	}
 
-	return r.setRoomCache(ctx, id)
+	room, err := r.setRoomCache(ctx, id)
+	if err != nil {
+		return room, err
+	}
+
+	// check for profile
+	if !room.IsPrivate || userID == nil {
+		return room, nil
+	}
+
+	avatar := ""
+	for _, user := range room.Users {
+		if user.ID != *userID {
+			avatar = user.Profile
+			break
+		}
+	}
+	room.Avatar = avatar
+
+	return room, nil
 }
 
 func (r *RoomService) EditRoom(ctx context.Context, id uuid.UUID, req *appModels.EditRoomModel) error {
@@ -172,44 +191,12 @@ func (r *RoomService) EditRoom(ctx context.Context, id uuid.UUID, req *appModels
 		return errs.InternalServerErr().WithError(err)
 	}
 
-	r.setRoomCache(ctx, id)
+	// reset the cache
+	if _, err := r.setRoomCache(ctx, id); err != nil {
+		logging.ErrorE("failed to reset room cache", err)
+	}
 
 	return nil
-}
-
-func (r *RoomService) setRoomCache(ctx context.Context, id uuid.UUID) (*appModels.RoomOutPutModel, error) {
-	db := psql.DBContext(ctx)
-
-	var dbRoom models.Room
-
-	if err := db.Model(&models.Room{}).
-		Preload("Users").
-		Preload("Users.User").First(&dbRoom, "id = ?", id).Error; err != nil {
-		return nil, errs.NotFoundErr().WithError(err)
-	}
-
-	room := appModels.RoomOutPutModel{
-		ID:        dbRoom.ID,
-		Name:      dbRoom.Name,
-		IsPrivate: dbRoom.IsPrivate,
-		Users:     make([]appModels.RoomUserOutPutModel, len(dbRoom.Users)),
-	}
-
-	for i, userRoom := range dbRoom.Users {
-		room.Users[i] = appModels.RoomUserOutPutModel{
-			ID:        userRoom.UserID,
-			FirstName: userRoom.User.FirstName,
-			LastName:  userRoom.User.LastName,
-			Username:  userRoom.User.Username,
-			Profile:   util.FilePathPrefix(userRoom.User.Profile),
-		}
-	}
-
-	if err := r.cache.Set(r.getRoomCacheKey(id), &room, roomCacheDuration); err != nil {
-		return nil, errs.InternalServerErr().WithError(err)
-	}
-
-	return &room, nil
 }
 
 func (r *RoomService) JoinRoom(ctx context.Context, roomID, userID uuid.UUID) error {
@@ -284,23 +271,24 @@ func (r *RoomService) LeftRoom(ctx context.Context, roomID, userID uuid.UUID) er
 	return nil
 }
 
-func (r *RoomService) getRoomCacheKey(id uuid.UUID) string {
-	return "room_" + id.String()
-}
-
-func (b *RoomService) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *RoomService) Delete(ctx context.Context, currentUser *sharedModels.User, id uuid.UUID) error {
 	db := psql.DBContext(ctx)
 
-	var room models.Room
-
-	if err := db.Model(&models.Room{}).First(&room, "id = ?", id).Error; err != nil {
-		return errs.NotFoundErr().WithError(err)
+	room, err := r.getRoom(ctx, id)
+	if err != nil {
+		return err
 	}
 
-	//TODO: check who is creator or admin!
-	if err := db.Delete(&room).Error; err != nil {
+	if !r.hasPermission(room, currentUser) && !room.IsPrivate {
+		return errs.AccessDeniedError().Msg("you do not have permission of deleting this room")
+	}
+
+	if err := db.Where("id = ?", id).Delete(&models.Room{}).Error; err != nil {
 		return errs.InternalServerErr().WithError(err)
 	}
+
+	// delete the cache
+	_ = r.cache.Delete(r.getRoomCacheKey(id))
 
 	return nil
 }
@@ -308,10 +296,9 @@ func (b *RoomService) Delete(ctx context.Context, id uuid.UUID) error {
 func (r *RoomService) UpdateAvatar(ctx context.Context, roomID uuid.UUID, avatar string) error {
 	db := psql.DBContext(ctx)
 
-	var room models.Room
-
-	if err := db.Model(&models.Room{}).First(&room, "id = ?", roomID).Error; err != nil {
-		return errs.NotFoundErr().WithError(err)
+	room, err := r.getRoom(ctx, roomID)
+	if err != nil {
+		return err
 	}
 
 	if room.IsPrivate {
@@ -322,5 +309,92 @@ func (r *RoomService) UpdateAvatar(ctx context.Context, roomID uuid.UUID, avatar
 		return errs.InternalServerErr().WithError(err)
 	}
 
+	// delete the cache
+	_ = r.cache.Delete(r.getRoomCacheKey(roomID))
+
 	return nil
+}
+
+func (r *RoomService) hasPermission(room *appModels.RoomOutPutModel, user *sharedModels.User) bool {
+	if user.IsAdmin() {
+		return true
+	}
+
+	// room is public and just need to check the creator
+	if !room.IsPrivate && (room.CreatedByID != nil && *room.CreatedByID == user.ID) {
+		return true
+	}
+
+	if !room.IsPrivate {
+		return false
+	}
+
+	hasAccess := false
+
+	// check the private room users
+	for _, roomUser := range room.Users {
+		if roomUser.ID == user.ID {
+			hasAccess = true
+			break
+		}
+	}
+
+	return hasAccess
+}
+
+func (r *RoomService) getRoom(ctx context.Context, id uuid.UUID) (*appModels.RoomOutPutModel, error) {
+	var room appModels.RoomOutPutModel
+
+	if err := r.cache.UnmarshalToObject(r.getRoomCacheKey(id), &room); err == nil {
+		newRoom, err := r.setRoomCache(ctx, id)
+
+		if err != nil {
+			return nil, errs.NotFoundErr()
+		}
+
+		return newRoom, nil
+	}
+
+	return &room, nil
+}
+
+func (r *RoomService) getRoomCacheKey(id uuid.UUID) string {
+	return "room_" + id.String()
+}
+
+func (r *RoomService) setRoomCache(ctx context.Context, id uuid.UUID) (*appModels.RoomOutPutModel, error) {
+	db := psql.DBContext(ctx)
+
+	var dbRoom models.Room
+
+	if err := db.Model(&models.Room{}).
+		Preload("Users").
+		Preload("Users.User").First(&dbRoom, "id = ?", id).Error; err != nil {
+		return nil, errs.NotFoundErr().WithError(err)
+	}
+
+	room := appModels.RoomOutPutModel{
+		ID:          dbRoom.ID,
+		Name:        dbRoom.Name,
+		IsPrivate:   dbRoom.IsPrivate,
+		CreatedByID: dbRoom.CreatedByID,
+		Avatar:      util.FilePathPrefix(dbRoom.Avatar),
+		Users:       make([]appModels.RoomUserOutPutModel, len(dbRoom.Users)),
+	}
+
+	for i, userRoom := range dbRoom.Users {
+		room.Users[i] = appModels.RoomUserOutPutModel{
+			ID:        userRoom.UserID,
+			FirstName: userRoom.User.FirstName,
+			LastName:  userRoom.User.LastName,
+			Username:  userRoom.User.Username,
+			Profile:   util.FilePathPrefix(userRoom.User.Profile),
+		}
+	}
+
+	if err := r.cache.Set(r.getRoomCacheKey(id), &room, roomCacheDuration); err != nil {
+		return nil, errs.InternalServerErr().WithError(err)
+	}
+
+	return &room, nil
 }

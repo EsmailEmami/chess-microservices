@@ -53,7 +53,7 @@ func (g *ChatRoom) Connect(client *sharedWebsocket.Client) {
 
 	g.connect(client)
 
-	room, err := g.roomService.Get(context.Background(), g.roomID)
+	room, err := g.roomService.Get(context.Background(), g.roomID, &client.UserID)
 
 	if err != nil {
 		g.wss.SendErrorMessageToClient(client.SessionID, err.Error())
@@ -248,7 +248,8 @@ func (g *ChatRoom) Edit() {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	room, err := g.roomService.Get(context.Background(), g.roomID)
+	// this is a public room always
+	room, err := g.roomService.Get(context.Background(), g.roomID, nil)
 
 	if err != nil {
 		return

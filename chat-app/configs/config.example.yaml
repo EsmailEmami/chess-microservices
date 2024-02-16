@@ -2,6 +2,7 @@ app:
   address: 127.0.0.1
   port: 3005
   url: http://127.0.0.1:3005
+  files_download_prefix: http://localhost:3000/media/uploads
   
 consul:
   enable: true

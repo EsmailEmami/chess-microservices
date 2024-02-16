@@ -179,8 +179,12 @@ func (r *RoomHandler) LeftRoom(ctx *gin.Context, id uuid.UUID) (*handler.Respons
 // @Failure 422 {object} errs.ValidationError
 // @Router /room/delete/{id} [post]
 func (r *RoomHandler) DeleteRoom(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
+	user := r.GetUser(ctx)
+	if user == nil {
+		return nil, errs.UnAuthorizedErr()
+	}
 
-	err := r.roomService.Delete(ctx, id)
+	err := r.roomService.Delete(ctx, user, id)
 
 	if err != nil {
 		return nil, err

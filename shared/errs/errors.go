@@ -163,6 +163,15 @@ func BadRequestErr() AppError {
 	return e
 }
 
+func AccessDeniedError() AppError {
+	e := &Error{
+		Message: consts.ForbiddenError,
+		status:  http.StatusForbidden,
+	}
+
+	return e
+}
+
 func log(e AppError) {
 	logging.ErrorE(e.getMessage(), e.getLogError(), "status", e.GetStatusCode())
 }

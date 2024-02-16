@@ -63,10 +63,12 @@ func (c *CreatePrivateRoomInputModel) ToDBModel() *models.Room {
 }
 
 type RoomOutPutModel struct {
-	ID        uuid.UUID             `json:"id"`
-	Name      string                `json:"name"`
-	IsPrivate bool                  `json:"isPrivate"`
-	Users     []RoomUserOutPutModel `json:"users"`
+	ID          uuid.UUID             `json:"id"`
+	CreatedByID *uuid.UUID            `json:"createdById"`
+	Name        string                `json:"name"`
+	IsPrivate   bool                  `json:"isPrivate"`
+	Avatar      string                `json:"avatar"`
+	Users       []RoomUserOutPutModel `json:"users"`
 }
 
 type RoomUserOutPutModel struct {
