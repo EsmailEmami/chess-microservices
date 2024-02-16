@@ -285,6 +285,9 @@ func (g *ChatRoom) UserProfileChanged(userID uuid.UUID, profile string) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
+	// remove the room cache
+	g.roomService.DeleteCache(g.roomID)
+
 	// send the profile changed to all users
 	for _, clients := range g.connections {
 		for _, client := range clients {

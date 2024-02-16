@@ -71,8 +71,8 @@ func (r *RoomHandler) CreatePrivateRoom(ctx *gin.Context, req models.CreatePriva
 	}
 
 	// join to the web socket rooms if user is online
-	chatroom.ConnectPrvateRoom(room.ID, currentUser.ID)
-	chatroom.ConnectPrvateRoom(room.ID, req.UserID)
+	chatroom.ConnectPrivateRoom(room.ID, currentUser.ID)
+	chatroom.ConnectPrivateRoom(room.ID, req.UserID)
 
 	return handler.OK(&room.ID), nil
 }

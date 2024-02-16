@@ -31,5 +31,11 @@ chat-app/configs/config.yaml
 chat-app/configs/config.prod.yaml
 
 
+# media application 
+media-app/bin
+media-app/.vscode
+media-app/configs/config.yaml
+media-app/configs/config.prod.yaml
+media-app/attachments
 
 pids.txt

@@ -67,7 +67,7 @@ func LeftRoom(roomID uuid.UUID, user *sharedModels.User) {
 
 // private rooms
 
-func ConnectPrvateRoom(roomID, userID uuid.UUID) {
+func ConnectPrivateRoom(roomID, userID uuid.UUID) {
 	room := getPrivateChatRoom(roomID)
 
 	for _, client := range websocket.PrivateChatRoomWss.GetUserConnections(userID) {

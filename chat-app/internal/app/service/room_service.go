@@ -315,6 +315,14 @@ func (r *RoomService) UpdateAvatar(ctx context.Context, roomID uuid.UUID, avatar
 	return nil
 }
 
+func (r *RoomService) DeleteCache(id uuid.UUID) {
+	err := r.cache.Delete(r.getRoomCacheKey(id))
+
+	if err != nil {
+		logging.ErrorE("failed to remove room cache", err)
+	}
+}
+
 func (r *RoomService) hasPermission(room *appModels.RoomOutPutModel, user *sharedModels.User) bool {
 	if user.IsAdmin() {
 		return true
