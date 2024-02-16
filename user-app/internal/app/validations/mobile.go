@@ -3,13 +3,24 @@ package validations
 import (
 	"errors"
 	"regexp"
+	"strings"
 
+	"github.com/esmailemami/chess/shared/util"
 	"github.com/esmailemami/chess/user/internal/consts"
 )
 
 func IsValidMobileNumber() func(value interface{}) error {
 	return func(value interface{}) error {
-		mobile, ok := value.(string)
+		if util.IsNil(value) {
+			return nil
+		}
+
+		mobile, ok := util.Value(value).(string)
+
+		if strings.TrimSpace(mobile) == "" {
+			return nil
+		}
+
 		if !ok {
 			return errors.New(consts.InvalidMobileNumber)
 		}

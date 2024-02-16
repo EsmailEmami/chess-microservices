@@ -70,7 +70,7 @@ func (u *ProfileHandler) ChangePassword(c *gin.Context, req models.UserChangePas
 	return handler.OK(&user.ID, "Password changed successfully"), nil
 }
 
-// ChangePassword godoc
+// ChangeProfile godoc
 // @Tags profile
 // @Accept json
 // @Produce json
@@ -86,6 +86,10 @@ func (u *ProfileHandler) ChangeProfile(c *gin.Context, req models.UserChangeProf
 		return nil, errs.UnAuthorizedErr()
 	}
 	req.ID = user.ID
+
+	if err := req.Validate(); err != nil {
+		return nil, errs.ValidationErr(err)
+	}
 
 	err := u.userService.ChangeProfile(c, user.ID, &req)
 

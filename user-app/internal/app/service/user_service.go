@@ -77,10 +77,6 @@ func (u *UserService) ChangePassword(ctx context.Context, id uuid.UUID, req *app
 }
 
 func (u *UserService) ChangeProfile(ctx context.Context, id uuid.UUID, req *appModels.UserChangeProfileInputModel) error {
-	if err := req.Validate(); err != nil {
-		return errs.ValidationErr(err)
-	}
-
 	var user models.User
 
 	db := psql.DBContext(ctx)

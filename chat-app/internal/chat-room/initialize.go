@@ -98,7 +98,7 @@ func runPrivateChatRoom() {
 	for {
 		select {
 		case client := <-websocket.PrivateRoomRegisterCh:
-			userRooms, err := roomService.GetUserRoomIDs(client.Context, client.UserID, false)
+			userRooms, err := roomService.GetUserRoomIDs(client.Context, client.UserID, true)
 			if err != nil {
 				logging.ErrorE("failed to get user rooms", err)
 			}

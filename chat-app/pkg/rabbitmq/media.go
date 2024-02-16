@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/esmailemami/chess/chat/internal/app/service"
-
 	"github.com/esmailemami/chess/shared/database/redis"
 	"github.com/esmailemami/chess/shared/logging"
 	"github.com/goccy/go-json"

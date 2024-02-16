@@ -13,6 +13,6 @@ func profileRoutes(r *gin.RouterGroup, userService *service.UserService) {
 	profileHandler := handler.NewProfileHandler(userService)
 
 	api.GET("/", apiHandler.HandleAPI(profileHandler.Profile))
-	api.POST("/", apiHandler.HandleAPI(profileHandler.ChangeProfile))
+	api.POST("", apiHandler.HandleAPI(profileHandler.ChangeProfile))
 	api.POST("/change-password", apiHandler.HandleAPI(profileHandler.ChangePassword))
 }

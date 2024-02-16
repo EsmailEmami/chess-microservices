@@ -10,6 +10,7 @@ import (
 	"github.com/esmailemami/chess/chat/internal/websocket"
 
 	"github.com/esmailemami/chess/shared/database/redis"
+	"github.com/esmailemami/chess/shared/logging"
 	sharedModels "github.com/esmailemami/chess/shared/models"
 	sharedWebsocket "github.com/esmailemami/chess/shared/websocket"
 	"github.com/google/uuid"
@@ -101,10 +102,17 @@ func (g *ChatRoom) JoinUser(user *sharedModels.User) {
 func (g *ChatRoom) LeftUser(user *sharedModels.User) {
 	g.mutex.Lock()
 
+	// delete the room for the user
 	for _, client := range g.connections[user.ID] {
-		g.disconnect(client)
+		g.wss.SendMessageToClient(client.SessionID, websocket.DeleteRoom, &RoomMessage{
+			RoomID: g.roomID,
+		})
 	}
 
+	// delete the user from connections
+	delete(g.connections, user.ID)
+
+	// send the user left message to other connections
 	data := &models.RoomUserOutPutModel{
 		ID:        user.ID,
 		FirstName: user.FirstName,
@@ -222,6 +230,8 @@ func (g *ChatRoom) SeenMessage(req *sharedWebsocket.ClientMessage[websocket.Seen
 func (g *ChatRoom) Delete() {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
+
+	logging.Debug("Delete room called from websocket")
 
 	for _, clients := range g.connections {
 		for _, client := range clients {
