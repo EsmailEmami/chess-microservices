@@ -9,26 +9,34 @@ import (
 )
 
 const (
-	chatExchange = "media_chat_ex"
+	chatExchange = "media_chat_events"
 )
 
 func initializeChatRabbitMQ() {
-	amqp.DeclareExchange(chatExchange, rabbitmq.Direct)
-
-	queue, err := amqp.DeclareQueue("media_chat_profile_queue", true, false, false)
-	if err != nil {
-		logging.FatalE("failed to declare 'media_chat_profile_queue' queue", err)
-	}
-
-	if err := amqp.BindQueueToExchange(queue.Name, chatExchange, "media_chat_profile"); err != nil {
-		logging.FatalE("failed to bind queue", err)
+	// initialize the exchange between 'user' and 'media' apps
+	if err := amqp.DeclareExchange(chatExchange, rabbitmq.Topic, true, false); err != nil {
+		logging.FatalE("failed to declare 'media_chat_events' exchange", err)
 	}
 }
 
-func PublishRoomProfile(ctx context.Context, roomID uuid.UUID, profilePath string) error {
-	return amqp.PublishMessage(ctx, chatExchange, "media_chat_profile", &roomProfileMessage{
+func PublishRoomAvatar(ctx context.Context, attachmentID, roomID uuid.UUID, filePath string, deleteAttachmentID *uuid.UUID) error {
+	body := &roomProfileMessage{
 		RoomID:      roomID,
-		ProfilePath: profilePath,
+		ProfilePath: filePath,
+	}
+
+	correlationId := ""
+
+	if deleteAttachmentID != nil {
+		correlationId = deleteAttachmentID.String()
+	}
+
+	return amqp.PublishMessage(ctx, chatExchange, "media_chat.room.profile.upload", &rabbitmq.Message{
+		Body:          body,
+		DeliveryMode:  rabbitmq.DeliveryModePersistent,
+		CorrelationId: correlationId,
+		ReplyTo:       "media_callbacks.chat.room.profile.delete",
+		AppId:         "media-app",
 	})
 }
 

@@ -2,54 +2,35 @@ package rabbitmq
 
 import (
 	"context"
-	"time"
 
 	"github.com/esmailemami/chess/shared/logging"
-	"github.com/esmailemami/chess/user/internal/app/service"
-	"github.com/goccy/go-json"
+	"github.com/esmailemami/chess/shared/message-brokers/rabbitmq"
 	"github.com/google/uuid"
 )
 
 const (
-	chatExchange = "chat_user_ex"
+	chatExchange = "chat_user_events"
 )
 
 func initializeChatRabbitMQ() {
-	go consumeLastConnection()
-}
-
-type lastConnectionMessage struct {
-	UserID uuid.UUID `json:"userId"`
-	Date   time.Time `json:"date"`
-}
-
-func consumeLastConnection() {
-	msgsCh, err := amqp.ConsumeMessagesFromExchange("chat_user_last_connection_queue", chatExchange, "chat_user_last_connection")
-
-	if err != nil {
-		logging.ErrorE("failed to consume rabbit MQ", err)
-		return
-	}
-
-	userService := service.NewUserService()
-
-	for msg := range msgsCh {
-		var data lastConnectionMessage
-		if err := json.Unmarshal(msg.Body, &data); err != nil {
-			logging.ErrorE("failed to unmarshal last connection consumer", err)
-		}
-
-		if err := userService.UpdateLastConnection(context.Background(), data.UserID, data.Date); err != nil {
-			logging.Error("failed to update user connection", "userId", data.UserID)
-		}
+	// initialize the exchange between 'user' and 'media' apps
+	if err := amqp.DeclareExchange(chatExchange, rabbitmq.Topic, true, false); err != nil {
+		logging.FatalE("failed to declare 'media_user_events' exchange", err)
 	}
 }
 
-func PublishUserProfile(ctx context.Context, userID uuid.UUID, profilePath string) error {
-	logging.Info("User Profile Published")
-
-	return amqp.PublishMessage(ctx, chatExchange, "chat_user_profile", &userProfileMessage{
+func PublishChatRoomUserProfileChangedMessage(ctx context.Context, userID uuid.UUID, profilePath string) error {
+	body := &userProfileMessage{
 		UserID:      userID,
 		ProfilePath: profilePath,
+	}
+
+	return amqp.PublishMessage(ctx, chatExchange, "chat_user.user.profile.changed", &rabbitmq.Message{
+		Body: body,
 	})
+}
+
+type userProfileMessage struct {
+	UserID      uuid.UUID `json:"userId"`
+	ProfilePath string    `json:"profilePath"`
 }

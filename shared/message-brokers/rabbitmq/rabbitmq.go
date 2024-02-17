@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"golang.org/x/net/context"
@@ -15,13 +16,11 @@ const (
 	Headers = "headers"
 )
 
-// RabbitMQ represents a simple RabbitMQ connection.
 type RabbitMQ struct {
 	conn *amqp.Connection
 	ch   *amqp.Channel
 }
 
-// New creates a new RabbitMQ instance and initializes the connection and channel.
 func New(username, password, address string) (*RabbitMQ, error) {
 	url := fmt.Sprintf("amqp://%s:%s@%s", username, password, address)
 
@@ -39,7 +38,6 @@ func New(username, password, address string) (*RabbitMQ, error) {
 	return &RabbitMQ{conn: conn, ch: ch}, nil
 }
 
-// Close closes the RabbitMQ connection and channel.
 func (rmq *RabbitMQ) Close() {
 	if rmq.ch != nil {
 		rmq.ch.Close()
@@ -49,13 +47,12 @@ func (rmq *RabbitMQ) Close() {
 	}
 }
 
-// DeclareExchange declares an exchange with the given name and type.
-func (rmq *RabbitMQ) DeclareExchange(exchangeName, exchangeType string) error {
+func (rmq *RabbitMQ) DeclareExchange(exchangeName, exchangeType string, durable, autoDelete bool) error {
 	err := rmq.ch.ExchangeDeclare(
 		exchangeName, // exchange name
 		exchangeType, // exchange type
-		true,         // durable
-		false,        // auto-delete
+		durable,      // durable
+		autoDelete,   // auto-delete
 		false,        // internal
 		false,        // no-wait
 		nil,          // arguments
@@ -66,13 +63,12 @@ func (rmq *RabbitMQ) DeclareExchange(exchangeName, exchangeType string) error {
 	return nil
 }
 
-// DeclareQueue declares a queue with the given name.
 func (rmq *RabbitMQ) DeclareQueue(queueName string, durable, autoDelete, exclusive bool) (amqp.Queue, error) {
 	q, err := rmq.ch.QueueDeclare(
 		queueName,  // queue name
-		durable,    // durable
-		autoDelete, // auto-delete
-		exclusive,  // exclusive
+		durable,    // durable, persisted the queue when the broker is restarted
+		autoDelete, // auto-delete, will be delete when the project is shutted down
+		exclusive,  // exclusive, will make the queue only avaiable for the creator connection
 		false,      // no-wait
 		nil,        // arguments
 	)
@@ -82,7 +78,6 @@ func (rmq *RabbitMQ) DeclareQueue(queueName string, durable, autoDelete, exclusi
 	return q, nil
 }
 
-// BindQueueToExchange binds a queue to an exchange with a specific routing key.
 func (rmq *RabbitMQ) BindQueueToExchange(queueName, exchangeName, routingKey string) error {
 	err := rmq.ch.QueueBind(
 		queueName,    // queue name
@@ -97,10 +92,30 @@ func (rmq *RabbitMQ) BindQueueToExchange(queueName, exchangeName, routingKey str
 	return nil
 }
 
-// PublishMessage publishes a message to the specified exchange with a routing key.
-func (rmq *RabbitMQ) PublishMessage(ctx context.Context, exchange, routingKey string, data any) error {
+const (
+	DeliveryModeTransient  uint8 = 0
+	DeliveryModePersistent uint8 = 2
+)
 
-	bts, err := json.Marshal(&data)
+type Message struct {
+	Body any
+
+	Headers amqp.Table
+
+	// Properties
+	DeliveryMode  uint8  // Transient (0 or 1) or Persistent (2)
+	CorrelationId string // correlation identifier
+	ReplyTo       string // address to to reply to (ex: RPC)
+	MessageId     string // message identifier
+	Type          string // message type name
+	UserId        string // creating user id - ex: "guest"
+	AppId         string // creating application id
+
+}
+
+func (rmq *RabbitMQ) PublishMessage(ctx context.Context, exchange, routingKey string, msg *Message) error {
+
+	bts, err := json.Marshal(&msg.Body)
 
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %v", err)
@@ -112,8 +127,16 @@ func (rmq *RabbitMQ) PublishMessage(ctx context.Context, exchange, routingKey st
 		false,      // mandatory
 		false,      // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(bts),
+			ContentType:   "text/plain",
+			Body:          []byte(bts),
+			DeliveryMode:  msg.DeliveryMode,
+			Timestamp:     time.Now(),
+			CorrelationId: msg.CorrelationId,
+			ReplyTo:       msg.ReplyTo,
+			MessageId:     msg.MessageId,
+			Type:          msg.Type,
+			UserId:        msg.UserId,
+			AppId:         msg.AppId,
 		},
 	)
 	if err != nil {
@@ -122,12 +145,11 @@ func (rmq *RabbitMQ) PublishMessage(ctx context.Context, exchange, routingKey st
 	return nil
 }
 
-// ConsumeMessages consumes messages from the specified queue.
-func (rmq *RabbitMQ) ConsumeMessages(queueName string) (<-chan amqp.Delivery, error) {
+func (rmq *RabbitMQ) ConsumeMessages(queueName string, autoAck bool) (<-chan amqp.Delivery, error) {
 	msgs, err := rmq.ch.Consume(
 		queueName, // queue
 		"",        // consumer
-		true,      // auto-ack
+		autoAck,   // auto-ack
 		false,     // exclusive
 		false,     // no-local
 		false,     // no-wait
@@ -136,28 +158,5 @@ func (rmq *RabbitMQ) ConsumeMessages(queueName string) (<-chan amqp.Delivery, er
 	if err != nil {
 		return nil, fmt.Errorf("failed to register a consumer: %v", err)
 	}
-	return msgs, nil
-}
-
-// ConsumeMessagesFromDirect consumes messages from a queue bound to a direct exchange with a routing key.
-func (rmq *RabbitMQ) ConsumeMessagesFromExchange(queueName, exchangeName, routingKey string) (<-chan amqp.Delivery, error) {
-	// Declare the queue
-	queue, err := rmq.DeclareQueue(queueName, true, false, false)
-	if err != nil {
-		return nil, err
-	}
-
-	// Bind the queue to the topic exchange with the routing pattern
-	err = rmq.BindQueueToExchange(queue.Name, exchangeName, routingKey)
-	if err != nil {
-		return nil, err
-	}
-
-	// Consume messages from the queue
-	msgs, err := rmq.ConsumeMessages(queue.Name)
-	if err != nil {
-		return nil, err
-	}
-
 	return msgs, nil
 }

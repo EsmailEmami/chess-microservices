@@ -8,6 +8,7 @@ import (
 	"github.com/esmailemami/chess/media/internal/util"
 	"github.com/esmailemami/chess/shared/database/psql"
 	"github.com/esmailemami/chess/shared/errs"
+	"github.com/esmailemami/chess/shared/logging"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -48,37 +49,9 @@ func (a *AttachmentService) UploadFiles(ctx context.Context, files []*multipart.
 	return attachments, nil
 }
 
-// UploadFile must delete the last one and replace the new image
 func (a *AttachmentService) UploadFile(ctx context.Context, f *multipart.FileHeader, itemID uuid.UUID, directory string, fileType string) (*models.Attachment, error) {
 	db := psql.DBContext(ctx)
-	tx := db.Begin()
-
-	var attachment models.Attachment
-
-	if err := db.Model(&models.Attachment{}).Order("created_at DESC").Find(&attachment, "item_id = ?", itemID).Error; err != nil {
-		return nil, errs.InternalServerErr().WithError(err)
-	}
-
-	newAttachment, err := a.uploadFileTransaction(tx, f, itemID, directory, fileType)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	if attachment.ID != uuid.Nil {
-
-		if err := a.fileService.DeleteFile(attachment.UploadPath); err != nil {
-			_ = a.fileService.DeleteFile(newAttachment.UploadPath)
-			tx.Rollback()
-			return nil, errs.InternalServerErr().WithError(err)
-		}
-
-		tx.Delete(&attachment)
-	}
-
-	tx.Commit()
-
-	return newAttachment, nil
+	return a.uploadFileTransaction(db, f, itemID, directory, fileType)
 }
 
 func (a *AttachmentService) uploadFileTransaction(db *gorm.DB, f *multipart.FileHeader, itemID uuid.UUID, directory string, fileType string) (*models.Attachment, error) {
@@ -106,4 +79,41 @@ func (a *AttachmentService) uploadFileTransaction(db *gorm.DB, f *multipart.File
 	}
 
 	return attachment, err
+}
+
+func (a *AttachmentService) Delete(ctx context.Context, attachmentID uuid.UUID) error {
+	db := psql.DBContext(ctx)
+
+	var attachment models.Attachment
+
+	if err := db.Model(&models.Attachment{}).First(&attachment, "id = ?", attachmentID).Error; err != nil {
+		return errs.NotFoundErr().WithError(err)
+	}
+
+	if err := a.fileService.DeleteFile(attachment.UploadPath); err != nil {
+		return errs.InternalServerErr().Msg("failed to delete the file")
+	}
+
+	if err := db.Delete(&attachment).Error; err != nil {
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	return nil
+}
+
+func (a *AttachmentService) GetCurrentAttachmentID(ctx context.Context, itemID uuid.UUID) *uuid.UUID {
+	db := psql.DBContext(ctx)
+
+	var attachmentID string
+
+	if err := db.Model(&models.Attachment{}).Order("created_at DESC").Select("id").First(&attachmentID, "item_id = ?", itemID).Error; err != nil {
+		logging.ErrorE("failed to get current attachment", err, "itemId", itemID)
+
+		return nil
+	}
+
+	return func() *uuid.UUID {
+		id := uuid.MustParse(attachmentID)
+		return &id
+	}()
 }

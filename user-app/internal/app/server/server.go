@@ -6,7 +6,9 @@ import (
 	"github.com/esmailemami/chess/shared/consul"
 	"github.com/esmailemami/chess/user/api/routes"
 	"github.com/esmailemami/chess/user/docs"
-	"github.com/esmailemami/chess/user/pkg/rabbitmq"
+	consumerRMQ "github.com/esmailemami/chess/user/internal/rabbitmq"
+	producerRMQ "github.com/esmailemami/chess/user/pkg/rabbitmq"
+
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	swaggerfiles "github.com/swaggo/files"
@@ -23,7 +25,8 @@ func RunServer() {
 
 	setupSwagger(r)
 
-	rabbitmq.Initialize()
+	producerRMQ.InitializeProducerConnection()
+	consumerRMQ.InitializeConsumerConnection()
 
 	go consul.Register()
 

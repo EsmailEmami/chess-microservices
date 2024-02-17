@@ -9,28 +9,34 @@ import (
 )
 
 const (
-	userExchange = "media_user_ex"
+	userExchange = "media_user_events"
 )
 
 func initializeUserRabbitMQ() {
-	if err := amqp.DeclareExchange(userExchange, rabbitmq.Direct); err != nil {
-		logging.FatalE("failed to declare 'media_user_ex' exchange", err)
-	}
-
-	userProfileQueue, err := amqp.DeclareQueue("media_user_profile_queue", true, false, false)
-	if err != nil {
-		logging.FatalE("failed to declare 'media_user_profile_queue' queue", err)
-	}
-
-	if err := amqp.BindQueueToExchange(userProfileQueue.Name, userExchange, "media_user_profile"); err != nil {
-		logging.FatalE("failed to bind queue", err)
+	// initialize the exchange between 'user' and 'media' apps
+	if err := amqp.DeclareExchange(userExchange, rabbitmq.Topic, true, false); err != nil {
+		logging.FatalE("failed to declare 'media_user_events' exchange", err)
 	}
 }
 
-func PublishUserProfile(ctx context.Context, userID uuid.UUID, profilePath string) error {
-	return amqp.PublishMessage(ctx, userExchange, "media_user_profile", &userProfileMessage{
+func PublishUserProfile(ctx context.Context, attachmentID, userID uuid.UUID, profilePath string, deleteAttachmentID *uuid.UUID) error {
+	body := &userProfileMessage{
 		UserID:      userID,
 		ProfilePath: profilePath,
+	}
+
+	correlationId := ""
+
+	if deleteAttachmentID != nil {
+		correlationId = deleteAttachmentID.String()
+	}
+
+	return amqp.PublishMessage(ctx, userExchange, "media_user.profile.upload", &rabbitmq.Message{
+		Body:          body,
+		DeliveryMode:  rabbitmq.DeliveryModePersistent,
+		CorrelationId: correlationId,
+		ReplyTo:       "media_callbacks.user.profile.delete",
+		AppId:         "media-app",
 	})
 }
 

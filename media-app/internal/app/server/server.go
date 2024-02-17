@@ -6,7 +6,8 @@ import (
 
 	"github.com/esmailemami/chess/media/api/routes"
 	"github.com/esmailemami/chess/media/docs"
-	"github.com/esmailemami/chess/media/pkg/rabbitmq"
+	consumerRMQ "github.com/esmailemami/chess/media/internal/rabbitmq"
+	producerRMQ "github.com/esmailemami/chess/media/pkg/rabbitmq"
 	"github.com/esmailemami/chess/shared/consul"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -24,7 +25,8 @@ func RunServer() {
 
 	routes.Initialize(r)
 
-	rabbitmq.Initialize()
+	producerRMQ.InitializeProduserConnection()
+	consumerRMQ.InitiazlizeConsumerConnection()
 
 	go consul.Register()
 

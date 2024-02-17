@@ -6,10 +6,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// this rabbitmq connection is only used for publishing messages to consumers
+// this rabbitmq connection is only used for consuming messages from producers
 var amqp *rabbitmq.RabbitMQ
 
-func InitializeProduserConnection() {
+func InitializeConsumerConnection() {
 	var (
 		username = viper.GetString("rabbitmq.username")
 		password = viper.GetString("rabbitmq.password")
@@ -25,8 +25,7 @@ func InitializeProduserConnection() {
 	amqp = amqpConn
 
 	// initialize exchanges and queues
-	initializeUserRabbitMQ()
-	initializeChatRabbitMQ()
+	initializeMediaRabbitMQ()
 
 	logging.Info("rabbit MQ connected")
 }

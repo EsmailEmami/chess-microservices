@@ -45,13 +45,14 @@ func (a *AttachmentHandler) UploadProile(ctx *gin.Context, id uuid.UUID) (*handl
 		return nil, errs.BadRequestErr().Msg("No file received!")
 	}
 
+	currentAttachmentID := a.attachmentService.GetCurrentAttachmentID(ctx, id)
+
 	attachment, err := a.attachmentService.UploadFile(ctx, files[0], id, dbModels.ATTACHMENT_USER_PROFILE, dbModels.ATTACHMENT_USER_PROFILE)
 	if err != nil {
 		return nil, err
 	}
 
-	// send the data to rabbitmq
-	rabbitmq.PublishUserProfile(context.Background(), id, attachment.UploadPath)
+	rabbitmq.PublishUserProfile(context.Background(), attachment.ID, id, attachment.UploadPath, currentAttachmentID)
 
 	return handler.OK(&attachment.ID), nil
 }
@@ -77,13 +78,14 @@ func (a *AttachmentHandler) UploadRoomAvatar(ctx *gin.Context, id uuid.UUID) (*h
 		return nil, errs.BadRequestErr().Msg("No file received!")
 	}
 
+	currentAttachmentID := a.attachmentService.GetCurrentAttachmentID(ctx, id)
+
 	attachment, err := a.attachmentService.UploadFile(ctx, files[0], id, dbModels.ATTACHMENT_PUBLIC_ROOM_PROFILE, dbModels.ATTACHMENT_USER_PROFILE)
 	if err != nil {
 		return nil, err
 	}
 
-	// send the data to rabbitmq
-	rabbitmq.PublishRoomProfile(context.Background(), id, attachment.UploadPath)
+	rabbitmq.PublishRoomAvatar(context.Background(), attachment.ID, id, attachment.UploadPath, currentAttachmentID)
 
 	return handler.OK(&attachment.ID), nil
 }

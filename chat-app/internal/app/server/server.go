@@ -6,8 +6,9 @@ import (
 	"github.com/esmailemami/chess/chat/api/routes"
 	"github.com/esmailemami/chess/chat/docs"
 	chatroom "github.com/esmailemami/chess/chat/internal/chat-room"
+	consumerRMQ "github.com/esmailemami/chess/chat/internal/rabbitmq"
 	"github.com/esmailemami/chess/chat/internal/websocket"
-	"github.com/esmailemami/chess/chat/pkg/rabbitmq"
+	producerRMQ "github.com/esmailemami/chess/chat/pkg/rabbitmq"
 	"github.com/esmailemami/chess/shared/consul"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -26,7 +27,8 @@ func RunServer() {
 	routes.Initialize(r)
 	websocket.InitializeRoutes(r)
 
-	rabbitmq.Initialize()
+	producerRMQ.InitializeProducerConnection()
+	consumerRMQ.InitializeConsumerConnection()
 
 	chatroom.Run()
 
