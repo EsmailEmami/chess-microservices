@@ -1,6 +1,9 @@
 package websocket
 
-import "github.com/google/uuid"
+import (
+	"github.com/esmailemami/chess/shared/websocket"
+	"github.com/google/uuid"
+)
 
 const (
 	NewMessage         = "new-message"
@@ -15,6 +18,8 @@ const (
 	RoomAvatarChanged  = "room-avatar-changed"
 	UserProfileChanged = "user-profile-changed"
 	EditRoom           = "edit-room"
+	WatchRoom          = "watch-room"
+	DeletetWatch       = "delete-watch"
 )
 
 type NewMessageRequest struct {
@@ -37,4 +42,9 @@ type DeleteMessageRequest struct {
 type SeenMessageRequest struct {
 	ID     uuid.UUID `json:"id"`
 	RoomID uuid.UUID `json:"roomId"`
+}
+
+type RoomRequest struct {
+	Client *websocket.Client `json:"-"`
+	RoomID uuid.UUID         `json:"roomId"`
 }

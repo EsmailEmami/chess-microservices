@@ -285,9 +285,6 @@ func (g *ChatRoom) UserProfileChanged(userID uuid.UUID, profile string) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	// remove the room cache
-	g.roomService.DeleteCache(g.roomID)
-
 	// send the profile changed to all users
 	for _, clients := range g.connections {
 		for _, client := range clients {
@@ -321,6 +318,60 @@ func (g *ChatRoom) UserProfileChanged(userID uuid.UUID, profile string) {
 	}
 }
 
+func (g *ChatRoom) Watch(client *sharedWebsocket.Client) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	if !g.isPublic {
+		g.wss.SendErrorMessageToClient(client.SessionID, "this room is not public")
+		return
+	}
+
+	if _, ok := g.connections[client.UserID]; ok {
+		g.wss.SendErrorMessageToClient(client.SessionID, "you already joined the room")
+		return
+	}
+
+	g.roomService.SetWatchRoom(client.SessionID, g.roomID)
+
+	g.connect(client)
+
+	room, err := g.roomService.Get(context.Background(), g.roomID, &client.UserID)
+
+	if err != nil {
+		g.wss.SendErrorMessageToClient(client.SessionID, err.Error())
+		return
+	}
+
+	lastMessages, err := g.messageService.GetLastMessages(client.Context, g.roomID)
+
+	if err != nil {
+		g.wss.SendErrorMessageToClient(client.SessionID, err.Error())
+		return
+	}
+
+	g.wss.SendMessageToClient(client.SessionID, websocket.WatchRoom, &RoomMessage{
+		RoomID: g.roomID,
+		Data: &RoomOutPutModel{
+			Room:     room,
+			Messages: lastMessages,
+		},
+	})
+}
+
+func (g *ChatRoom) DeleteWatch(client *sharedWebsocket.Client) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	if !g.isPublic {
+		g.wss.SendErrorMessageToClient(client.SessionID, "this room is not public")
+		return
+	}
+
+	g.roomService.DeleteWatchRoom(client.SessionID, g.roomID)
+	g.disconnect(client)
+}
+
 func (g *ChatRoom) connect(client *sharedWebsocket.Client) {
 	userClients, ok := g.connections[client.UserID]
 	if !ok {
@@ -342,5 +393,14 @@ func (g *ChatRoom) disconnect(client *sharedWebsocket.Client) {
 		delete(g.connections, client.UserID)
 	} else {
 		g.connections[client.UserID] = userClients
+	}
+
+	// delete the room from rooms map
+	if len(g.connections) == 0 {
+		if g.isPublic {
+			delete(publicRooms, g.roomID)
+		} else {
+			delete(privateRooms, g.roomID)
+		}
 	}
 }

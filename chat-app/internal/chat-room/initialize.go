@@ -11,11 +11,14 @@ import (
 )
 
 func Run() {
+	roomService := service.NewRoomService(redis.GetConnection())
+
 	initializeRooms()
 
 	go runGlobalChatRoom()
-	go runPublicChatRoom()
-	go runPrivateChatRoom()
+	go runPublicChatRoom(roomService)
+	go runPrivateChatRoom(roomService)
+	go userProfileChangedListener(roomService)
 }
 
 func runGlobalChatRoom() {
@@ -33,9 +36,7 @@ func runGlobalChatRoom() {
 	}
 }
 
-func runPublicChatRoom() {
-	roomService := service.NewRoomService(redis.GetConnection())
-
+func runPublicChatRoom(roomService *service.RoomService) {
 	for {
 		select {
 		case client := <-websocket.PublicRoomRegisterCh:
@@ -60,6 +61,11 @@ func runPublicChatRoom() {
 				getPublicChatRoom(roomID).Disconnect(client)
 			}
 
+			// delete watching rooms
+			for _, RoomID := range roomService.GetWatchRooms(client.SessionID) {
+				getPublicChatRoom(RoomID).DeleteWatch(client)
+			}
+
 		case req := <-websocket.PublicRoomNewMessageCh:
 			room, ok := publicRooms[req.Data.RoomID]
 			if ok {
@@ -80,20 +86,16 @@ func runPublicChatRoom() {
 			if ok {
 				room.AvatarChanged(req.ProfilePath)
 			}
-		case req := <-rabbitmq.UserProfileChangedCh:
-			publicRooms, err := roomService.GetUserRoomIDs(context.Background(), req.UserID, false)
-			if err != nil {
-				logging.ErrorE("failed to get user rooms", err)
-			}
-			for _, roomID := range publicRooms {
-				getPublicChatRoom(roomID).UserProfileChanged(req.UserID, req.ProfilePath)
+		case req := <-websocket.PublicRoomWatchCh:
+			room, ok := publicRooms[req.RoomID]
+			if ok {
+				room.Watch(req.Client)
 			}
 		}
 	}
 }
 
-func runPrivateChatRoom() {
-	roomService := service.NewRoomService(redis.GetConnection())
+func runPrivateChatRoom(roomService *service.RoomService) {
 
 	for {
 		select {
@@ -137,17 +139,33 @@ func runPrivateChatRoom() {
 			if ok {
 				room.SeenMessage(req)
 			}
-			// case req := <-rabbitmq.UserProfileChangedCh:
-			// 	logging.Debug("private receiver worked")
+		}
+	}
+}
 
-			// 	privateRooms, err := roomService.GetUserRoomIDs(context.Background(), req.UserID, false)
-			// 	if err != nil {
-			// 		logging.ErrorE("failed to get user rooms", err)
-			// 	}
+func userProfileChangedListener(roomService *service.RoomService) {
+	for req := range rabbitmq.UserProfileChangedCh {
+		publicRooms, err := roomService.GetUserRoomIDs(context.Background(), req.UserID, false)
+		if err != nil {
+			logging.ErrorE("failed to get user rooms", err)
+		}
+		for _, roomID := range publicRooms {
+			// remove the room cache
+			roomService.DeleteCache(roomID)
 
-			// 	for _, roomID := range privateRooms {
-			// 		getPrivateChatRoom(roomID).UserProfileChanged(req.UserID, req.ProfilePath)
-			// 	}
+			getPublicChatRoom(roomID).UserProfileChanged(req.UserID, req.ProfilePath)
+		}
+
+		privateRooms, err := roomService.GetUserRoomIDs(context.Background(), req.UserID, true)
+		if err != nil {
+			logging.ErrorE("failed to get user rooms", err)
+		}
+
+		for _, roomID := range privateRooms {
+			// remove the room cache
+			roomService.DeleteCache(roomID)
+
+			getPrivateChatRoom(roomID).UserProfileChanged(req.UserID, req.ProfilePath)
 		}
 	}
 }

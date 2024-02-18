@@ -13,6 +13,7 @@ import (
 	"github.com/esmailemami/chess/shared/logging"
 	sharedModels "github.com/esmailemami/chess/shared/models"
 	"github.com/esmailemami/chess/shared/service"
+	sharedUtil "github.com/esmailemami/chess/shared/util"
 	"github.com/esmailemami/chess/shared/util/dbutil"
 	"github.com/google/uuid"
 )
@@ -323,6 +324,57 @@ func (r *RoomService) DeleteCache(id uuid.UUID) {
 	}
 }
 
+func (r *RoomService) SetWatchRoom(clientID, roomID uuid.UUID) {
+	var watchRooms []uuid.UUID
+
+	_ = r.cache.UnmarshalToObject(r.getWatchRoomCacheKey(clientID), &watchRooms)
+
+	exists := false
+
+	for _, room := range watchRooms {
+		if room == roomID {
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		watchRooms = append(watchRooms, roomID)
+		r.cache.Set(r.getWatchRoomCacheKey(clientID), &watchRooms, 5*time.Hour)
+	}
+}
+
+func (r *RoomService) DeleteWatchRoom(clientID uuid.UUID, roomID uuid.UUID) {
+	var watchRooms []uuid.UUID
+
+	_ = r.cache.UnmarshalToObject(r.getWatchRoomCacheKey(clientID), &watchRooms)
+
+	exists := false
+
+	for _, room := range watchRooms {
+		if room == roomID {
+			exists = true
+			break
+		}
+	}
+
+	if exists {
+		watchRooms = sharedUtil.ArrayRemoveItem(watchRooms, roomID)
+	}
+
+	if len(watchRooms) == 0 {
+		_ = r.cache.Delete(r.getWatchRoomCacheKey(clientID))
+	} else {
+		_ = r.cache.Set(r.getWatchRoomCacheKey(clientID), &watchRooms, 5*time.Hour)
+	}
+}
+
+func (r *RoomService) GetWatchRooms(clientID uuid.UUID) []uuid.UUID {
+	var watchRooms []uuid.UUID
+	_ = r.cache.UnmarshalToObject(r.getWatchRoomCacheKey(clientID), &watchRooms)
+	return watchRooms
+}
+
 func (r *RoomService) hasPermission(room *appModels.RoomOutPutModel, user *sharedModels.User) bool {
 	if user.IsAdmin() {
 		return true
@@ -405,4 +457,8 @@ func (r *RoomService) setRoomCache(ctx context.Context, id uuid.UUID) (*appModel
 	}
 
 	return &room, nil
+}
+
+func (r *RoomService) getWatchRoomCacheKey(clientID uuid.UUID) string {
+	return "room_watch_client" + clientID.String()
 }

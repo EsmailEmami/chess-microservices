@@ -96,3 +96,13 @@ func RoomEdited(roomID uuid.UUID) {
 		room.Edit()
 	}
 }
+
+func ConnectRoom(user *sharedModels.User, roomID uuid.UUID) {
+	if room, ok := publicRooms[roomID]; ok {
+		room.Edit()
+	}
+}
+
+func DisconnectRoom(user *sharedModels.User, roomID uuid.UUID) {
+
+}

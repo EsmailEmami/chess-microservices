@@ -10,6 +10,8 @@ var (
 	PublicRoomNewMessageCh    = make(chan *websocket.ClientMessage[NewMessageRequest], 256)
 	PublicRoomEditMessageCh   = make(chan *websocket.ClientMessage[EditMessageRequest], 256)
 	PublicRoomDeleteMessageCh = make(chan *websocket.ClientMessage[DeleteMessageRequest], 256)
+	PublicRoomWatchCh         = make(chan *RoomRequest, 256)
+	PublicRoomDeleteWatchCh   = make(chan *RoomRequest, 256)
 )
 
 func PublicChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
@@ -35,6 +37,24 @@ func PublicChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
 		}
 
 		PublicRoomDeleteMessageCh <- websocket.NewClientMessage(c, req)
+	case WatchRoom:
+		var req RoomRequest
+		if !c.Unmarshal(msg.Content, &req) {
+			return
+		}
+
+		req.Client = c
+
+		PublicRoomWatchCh <- &req
+	case DeletetWatch:
+		var req RoomRequest
+		if !c.Unmarshal(msg.Content, &req) {
+			return
+		}
+
+		req.Client = c
+
+		PublicRoomDeleteWatchCh <- &req
 	}
 }
 
