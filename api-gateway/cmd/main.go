@@ -10,6 +10,7 @@ import (
 	"github.com/esmailemami/chess/shared/consul"
 	"github.com/esmailemami/chess/shared/logging"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
 )
 
@@ -32,6 +33,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	router.Handle("/metrics", promhttp.Handler())
 
 	// register consul
 	go consul.Register()

@@ -3,10 +3,12 @@ package proxy
 import (
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/esmailemami/chess/api-gateway/api/config"
 	"github.com/esmailemami/chess/api-gateway/api/middleware"
+	"github.com/esmailemami/chess/api-gateway/api/prometheus"
 	"github.com/esmailemami/chess/api-gateway/api/util"
 	"github.com/esmailemami/chess/api-gateway/internal/swagger"
 	"github.com/gorilla/mux"
@@ -88,6 +90,15 @@ func proxyHTTP(path string, w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(resp.StatusCode)
 	_, _ = io.Copy(w, resp.Body)
+
+	// monitoring
+	prometheus.RequestsTotal.WithLabelValues(r.Method, r.URL.Path, strconv.Itoa(resp.StatusCode)).Inc()
+
+	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+		prometheus.ClientErrors.WithLabelValues(r.Method, r.URL.Path, strconv.Itoa(resp.StatusCode)).Inc()
+	} else if resp.StatusCode >= 500 {
+		prometheus.ServerErrors.WithLabelValues(r.Method, r.URL.Path, strconv.Itoa(resp.StatusCode)).Inc()
+	}
 }
 
 var upgrader = websocket.Upgrader{

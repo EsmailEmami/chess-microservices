@@ -9,7 +9,7 @@ import (
 var (
 	GlobalRoomWss      = websocket.NewServer(GlobalRoomOnMessage)
 	PublicChatRoomWss  = websocket.NewServer(PublicChatRoomOnMessage)
-	PrivateChatRoomWss = websocket.NewServer(PublicChatRoomOnMessage)
+	PrivateChatRoomWss = websocket.NewServer(PrivateChatRoomOnMessage)
 )
 
 func Run() {
