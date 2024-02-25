@@ -91,6 +91,11 @@ func runPublicChatRoom(roomService *service.RoomService) {
 			if ok {
 				room.Watch(req.Client)
 			}
+		case req := <-websocket.PublicRoomIsTypingCh:
+			room, ok := publicRooms[req.Data.RoomID]
+			if ok {
+				room.IsTyping(req)
+			}
 		}
 	}
 }
@@ -138,6 +143,11 @@ func runPrivateChatRoom(roomService *service.RoomService) {
 			room, ok := privateRooms[req.Data.RoomID]
 			if ok {
 				room.SeenMessage(req)
+			}
+		case req := <-websocket.PrivateRoomIsTypingCh:
+			room, ok := privateRooms[req.Data.RoomID]
+			if ok {
+				room.IsTyping(req)
 			}
 		}
 	}

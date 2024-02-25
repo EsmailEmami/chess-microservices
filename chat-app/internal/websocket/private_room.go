@@ -11,6 +11,7 @@ var (
 	PrivateRoomEditMessageCh   = make(chan *websocket.ClientMessage[EditMessageRequest], 256)
 	PrivateRoomDeleteMessageCh = make(chan *websocket.ClientMessage[DeleteMessageRequest], 256)
 	PrivateRoomSeenMessageCh   = make(chan *websocket.ClientMessage[SeenMessageRequest], 256)
+	PrivateRoomIsTypingCh      = make(chan *websocket.ClientMessage[IsTypingRequest], 256)
 )
 
 func PrivateChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
@@ -43,6 +44,14 @@ func PrivateChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
 		}
 
 		PrivateRoomSeenMessageCh <- websocket.NewClientMessage(c, req)
+
+	case IsTyping:
+		var req IsTypingRequest
+		if !c.Unmarshal(msg.Content, &req) {
+			return
+		}
+
+		PrivateRoomIsTypingCh <- websocket.NewClientMessage(c, req)
 	}
 }
 

@@ -12,6 +12,7 @@ var (
 	PublicRoomDeleteMessageCh = make(chan *websocket.ClientMessage[DeleteMessageRequest], 256)
 	PublicRoomWatchCh         = make(chan *RoomRequest, 256)
 	PublicRoomDeleteWatchCh   = make(chan *RoomRequest, 256)
+	PublicRoomIsTypingCh      = make(chan *websocket.ClientMessage[IsTypingRequest], 256)
 )
 
 func PublicChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
@@ -55,6 +56,13 @@ func PublicChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
 		req.Client = c
 
 		PublicRoomDeleteWatchCh <- &req
+	case IsTyping:
+		var req IsTypingRequest
+		if !c.Unmarshal(msg.Content, &req) {
+			return
+		}
+
+		PublicRoomIsTypingCh <- websocket.NewClientMessage(c, req)
 	}
 }
 

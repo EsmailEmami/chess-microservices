@@ -24,3 +24,10 @@ type UserProfileChangedModel struct {
 	UserID  uuid.UUID `json:"userID"`
 	Profile string    `json:"profile"`
 }
+
+type UserIsTypingModel struct {
+	ID        uuid.UUID `json:"id"`
+	FirstName *string   `json:"firstName"`
+	LastName  *string   `json:"lastName"`
+	Username  string    `json:"username"`
+}

@@ -372,6 +372,33 @@ func (g *ChatRoom) DeleteWatch(client *sharedWebsocket.Client) {
 	g.disconnect(client)
 }
 
+func (g *ChatRoom) IsTyping(req *sharedWebsocket.ClientMessage[websocket.IsTypingRequest]) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	clients, ok := g.connections[req.UserID]
+
+	if !ok {
+		return
+	}
+
+	requestedUser := clients[req.ClientID].User
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.IsTyping, &RoomMessage{
+				RoomID: g.roomID,
+				Data: UserIsTypingModel{
+					ID:        requestedUser.ID,
+					FirstName: requestedUser.FirstName,
+					LastName:  requestedUser.LastName,
+					Username:  requestedUser.Username,
+				},
+			})
+		}
+	}
+}
+
 func (g *ChatRoom) connect(client *sharedWebsocket.Client) {
 	userClients, ok := g.connections[client.UserID]
 	if !ok {

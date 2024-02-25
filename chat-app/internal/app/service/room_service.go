@@ -147,13 +147,12 @@ func (r *RoomService) GetUserRoomIDs(ctx context.Context, userID uuid.UUID, load
 func (r *RoomService) Get(ctx context.Context, id uuid.UUID, userID *uuid.UUID) (*appModels.RoomOutPutModel, error) {
 	room := &appModels.RoomOutPutModel{}
 
-	if err := r.cache.UnmarshalToObject(r.getRoomCacheKey(id), room); err == nil {
-		return room, nil
-	}
-
-	room, err := r.setRoomCache(ctx, id)
-	if err != nil {
-		return room, err
+	if err := r.cache.UnmarshalToObject(r.getRoomCacheKey(id), room); err != nil {
+		r, err := r.setRoomCache(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		room = r
 	}
 
 	// check for profile

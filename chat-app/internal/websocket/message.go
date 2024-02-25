@@ -20,6 +20,7 @@ const (
 	EditRoom           = "edit-room"
 	WatchRoom          = "watch-room"
 	DeletetWatch       = "delete-watch"
+	IsTyping           = "is-typing"
 )
 
 type NewMessageRequest struct {
@@ -47,4 +48,8 @@ type SeenMessageRequest struct {
 type RoomRequest struct {
 	Client *websocket.Client `json:"-"`
 	RoomID uuid.UUID         `json:"roomId"`
+}
+
+type IsTypingRequest struct {
+	RoomID uuid.UUID `json:"roomId"`
 }
