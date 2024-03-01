@@ -1,0 +1,12 @@
+---
+up: |
+  CREATE TYPE "chat"."message_type" AS ENUM ('text','image','video');
+
+  ALTER TABLE "chat"."message"
+    ADD COLUMN "type" "chat"."message_type" NOT NULL DEFAULT 'text'::"chat"."message_type";
+
+down: |
+  ALTER TABLE "chat"."message"
+    DROP COLUMN "type";
+
+  DROP TYPE "chat"."message_type";

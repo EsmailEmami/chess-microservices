@@ -24,4 +24,5 @@ func (Attachment) TableName() string {
 const (
 	ATTACHMENT_USER_PROFILE        = "user-profile"
 	ATTACHMENT_PUBLIC_ROOM_PROFILE = "public-room-profile"
+	ATTACHMENT_ROOM_FILE_MESSAGE   = "room-file-message"
 )

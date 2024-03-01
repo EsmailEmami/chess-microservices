@@ -43,3 +43,11 @@ func FileExists(path string) bool {
 
 	return true
 }
+
+func IsVideo(mimeType string) bool {
+	return strings.HasPrefix(mimeType, "video/")
+}
+
+func IsImage(mimeType string) bool {
+	return strings.HasPrefix(mimeType, "image/")
+}

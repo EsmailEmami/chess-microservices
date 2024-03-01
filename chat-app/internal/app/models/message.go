@@ -8,12 +8,13 @@ import (
 
 type MessageOutPutDto struct {
 	ID        uuid.UUID `gorm:"column:id" json:"id"`
-	Content   string    `gorm:"ccolumn:ontent" json:"content"`
+	Content   string    `gorm:"column:content" json:"content"`
 	CreatedAt time.Time `gorm:"column:created_at" json:"createdAt"`
 
 	UserID    uuid.UUID `gorm:"column:user_id" json:"userId"`
 	FirstName *string   `gorm:"column:first_name" json:"firstName"`
 	LastName  *string   `gorm:"last_name" json:"lastName"`
+	Type      string    `gorm:"column:type" json:"type"`
 
 	ReplyToID        *uuid.UUID `gorm:"column:reply_to_id" json:"replyToId"`
 	ReplyToContent   *string    `gorm:"column:reply_content" json:"replyToContent"`

@@ -101,8 +101,55 @@ func (m *MessageService) NewMessage(ctx context.Context, roomID, userID uuid.UUI
 
 	lastMessages = append(lastMessages, *message)
 
-	if len(lastMessages) > 300 {
-		lastMessages = lastMessages[len(lastMessages)-300:]
+	if len(lastMessages) > cacheMessagesCount {
+		lastMessages = lastMessages[len(lastMessages)-cacheMessagesCount:]
+	}
+
+	// cache the result
+	if err := m.cache.Set(m.roomMessagesCacheKey(roomID), &lastMessages, lastMessagesCacheDuration); err != nil {
+		return nil, errs.InternalServerErr().WithError(err)
+	}
+
+	tx.Commit()
+
+	return message, nil
+}
+
+func (m *MessageService) NewFileMessage(ctx context.Context, roomID, userID, messageID uuid.UUID, content string, fileType string) (*appModels.MessageOutPutDto, error) {
+	db := psql.DBContext(ctx)
+	tx := db.Begin()
+
+	dbMsg := models.Message{
+		Content: content,
+		RoomID:  roomID,
+		Type:    fileType,
+	}
+	dbMsg.CreatedByID = &userID
+	dbMsg.ID = messageID
+
+	if err := tx.Create(&dbMsg).Error; err != nil {
+		tx.Rollback()
+		return nil, errs.InternalServerErr().WithError(err)
+	}
+
+	message, err := m.getMessage(tx, dbMsg.ID)
+
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	lastMessages, err := m.GetLastMessages(ctx, roomID)
+
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	lastMessages = append(lastMessages, *message)
+
+	if len(lastMessages) > cacheMessagesCount {
+		lastMessages = lastMessages[len(lastMessages)-cacheMessagesCount:]
 	}
 
 	// cache the result
@@ -231,7 +278,7 @@ func (m *MessageService) messageQry(db *gorm.DB) *gorm.DB {
 		Joins("LEFT JOIN public.user ur ON ur.id = rm.created_by_id").
 		Order("m.created_at ASC").
 		Where("m.deleted_at IS NULL").
-		Select("m.id, m.created_at, m.content, m.created_by_id as user_id, m.is_edited, m.is_seen, u.first_name, u.last_name, m.reply_to_id, rm.content as reply_content, ur.first_name as reply_first_name, ur.last_name as reply_last_name")
+		Select("m.id, m.created_at, m.content, m.created_by_id as user_id, m.is_edited, m.is_seen, u.first_name, u.last_name, m.reply_to_id, rm.content as reply_content, ur.first_name as reply_first_name, ur.last_name as reply_last_name, m.type")
 }
 
 func (m *MessageService) getMessage(db *gorm.DB, id uuid.UUID) (*appModels.MessageOutPutDto, error) {

@@ -13,6 +13,7 @@ import (
 
 var (
 	PublicRoomProfileChangedCh = make(chan *RoomAvatarMessage, 256)
+	RoomFileMessageCh          = make(chan *RoomFileMessage, 256)
 )
 
 const (
@@ -21,6 +22,7 @@ const (
 
 func initializeMediaRabbitMQ() {
 	go consumeMediaRoomAvatarUpload()
+	go consumeMediaFileMessage()
 }
 
 func consumeMediaRoomAvatarUpload() {
@@ -67,4 +69,45 @@ func consumeMediaRoomAvatarUpload() {
 type RoomAvatarMessage struct {
 	RoomID      uuid.UUID `json:"roomId"`
 	ProfilePath string    `json:"profilePath"`
+}
+
+func consumeMediaFileMessage() {
+	queue, err := amqp.DeclareQueue("media_chat_room_file_message_upload", true, false, false)
+	if err != nil {
+		logging.FatalE("failed to declare 'media_chat_room_file_message_upload' queue", err)
+	}
+
+	if err := amqp.BindQueueToExchange(queue.Name, mediaExchange, "media_chat.room.message.file.upload"); err != nil {
+		logging.FatalE("failed to bind queue", err)
+	}
+
+	messageBus, err := amqp.ConsumeMessages(queue.Name, false)
+	if err != nil {
+		logging.FatalE("failed to consume 'media_chat_room_file_message_upload' queue", err)
+	}
+
+	for msg := range messageBus {
+		logging.Debug("room avatar upload message received")
+
+		var resp RoomFileMessage
+
+		if err := json.Unmarshal(msg.Body, &resp); err != nil {
+			logging.ErrorE("failed to unmarshal file message consumer", err)
+		}
+
+		if err := msg.Ack(false); err != nil {
+			logging.ErrorE("failed to acknowlendge 'media_chat_room_avatar_upload' queue", err)
+			continue
+		}
+
+		RoomFileMessageCh <- &resp
+	}
+}
+
+type RoomFileMessage struct {
+	RoomID    uuid.UUID `json:"roomId"`
+	UserID    uuid.UUID `json:"userId"`
+	MessageID uuid.UUID `json:"messageId"`
+	Type      string    `json:"type"`
+	File      string    `json:"file"`
 }

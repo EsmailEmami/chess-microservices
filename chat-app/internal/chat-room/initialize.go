@@ -19,6 +19,7 @@ func Run() {
 	go runPublicChatRoom(roomService)
 	go runPrivateChatRoom(roomService)
 	go userProfileChangedListener(roomService)
+	go fileMessageListener()
 }
 
 func runGlobalChatRoom() {
@@ -176,6 +177,19 @@ func userProfileChangedListener(roomService *service.RoomService) {
 			roomService.DeleteCache(roomID)
 
 			getPrivateChatRoom(roomID).UserProfileChanged(req.UserID, req.ProfilePath)
+		}
+	}
+}
+
+func fileMessageListener() {
+	for req := range rabbitmq.RoomFileMessageCh {
+		if publicRoom, ok := publicRooms[req.RoomID]; ok {
+			publicRoom.SendFileMessage(req)
+		}
+
+		if priateRoom, ok := privateRooms[req.RoomID]; ok {
+			priateRoom.SendFileMessage(req)
+
 		}
 	}
 }

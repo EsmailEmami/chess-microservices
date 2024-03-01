@@ -6,6 +6,7 @@ import (
 
 	"github.com/esmailemami/chess/chat/internal/app/models"
 	"github.com/esmailemami/chess/chat/internal/app/service"
+	"github.com/esmailemami/chess/chat/internal/rabbitmq"
 	"github.com/esmailemami/chess/chat/internal/util"
 	"github.com/esmailemami/chess/chat/internal/websocket"
 
@@ -394,6 +395,26 @@ func (g *ChatRoom) IsTyping(req *sharedWebsocket.ClientMessage[websocket.IsTypin
 					LastName:  requestedUser.LastName,
 					Username:  requestedUser.Username,
 				},
+			})
+		}
+	}
+}
+
+func (g *ChatRoom) SendFileMessage(req *rabbitmq.RoomFileMessage) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	msg, err := g.messageService.NewFileMessage(context.Background(), req.RoomID, req.UserID, req.MessageID, req.File, req.Type)
+
+	if err != nil {
+		return
+	}
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.NewMessage, &RoomMessage{
+				RoomID: g.roomID,
+				Data:   msg,
 			})
 		}
 	}

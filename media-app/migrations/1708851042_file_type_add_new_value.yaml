@@ -1,0 +1,6 @@
+---
+up: |
+  ALTER TYPE file_type ADD VALUE 'room-file-message';
+
+down: |
+  ALTER TYPE file_type DROP VALUE 'room-file-message';

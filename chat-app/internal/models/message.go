@@ -15,8 +15,15 @@ type Message struct {
 	Room      *Room      `gorm:"foreignKey:room_id;references:id;" json:"room"`
 	IsEdited  bool       `gorm:"column:is_edited" json:"isEdited"`
 	IsSeen    bool       `gorm:"column:is_seen" json:"isSeen"`
+	Type      string     `gorm:"column:type" json:"type"`
 }
 
 func (Message) TableName() string {
 	return "chat.message"
 }
+
+const (
+	MESSAGE_TYPE_TEXT  = "text"
+	MESSAGE_TYPE_IMAGE = "image"
+	MESSAGE_TYPE_VIDEO = "video"
+)

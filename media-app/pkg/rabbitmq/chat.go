@@ -44,3 +44,27 @@ type roomProfileMessage struct {
 	RoomID      uuid.UUID `json:"roomId"`
 	ProfilePath string    `json:"profilePath"`
 }
+
+func PublishRoomFileMessage(ctx context.Context, roomID, messageID, userID uuid.UUID, filePath, fileType string) error {
+	body := &roomFileMessage{
+		RoomID:    roomID,
+		UserID:    userID,
+		MessageID: messageID,
+		Type:      fileType,
+		File:      filePath,
+	}
+
+	return amqp.PublishMessage(ctx, chatExchange, "media_chat.room.message.file.upload", &rabbitmq.Message{
+		Body:         body,
+		DeliveryMode: rabbitmq.DeliveryModePersistent,
+		AppId:        "media-app",
+	})
+}
+
+type roomFileMessage struct {
+	RoomID    uuid.UUID `json:"roomId"`
+	UserID    uuid.UUID `json:"userId"`
+	MessageID uuid.UUID `json:"messageId"`
+	Type      string    `json:"type"`
+	File      string    `json:"file"`
+}
