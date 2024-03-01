@@ -15,6 +15,7 @@ type MessageOutPutDto struct {
 	FirstName *string   `gorm:"column:first_name" json:"firstName"`
 	LastName  *string   `gorm:"last_name" json:"lastName"`
 	Type      string    `gorm:"column:type" json:"type"`
+	IsPin     bool      `gorm:"column:is_pin" json:"isPin"`
 
 	ReplyToID        *uuid.UUID `gorm:"column:reply_to_id" json:"replyToId"`
 	ReplyToContent   *string    `gorm:"column:reply_content" json:"replyToContent"`

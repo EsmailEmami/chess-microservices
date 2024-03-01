@@ -25,12 +25,15 @@ const (
 type RoomService struct {
 	service.BaseService[models.Room]
 
+	messageService *MessageService
+
 	cache *redis.Redis
 }
 
-func NewRoomService(cache *redis.Redis) *RoomService {
+func NewRoomService(cache *redis.Redis, messageService *MessageService) *RoomService {
 	return &RoomService{
-		cache: cache,
+		cache:          cache,
+		messageService: messageService,
 	}
 }
 
@@ -374,6 +377,117 @@ func (r *RoomService) GetWatchRooms(clientID uuid.UUID) []uuid.UUID {
 	return watchRooms
 }
 
+func (r *RoomService) PinMessage(ctx context.Context, roomID, messageID uuid.UUID, currentUser *sharedModels.User) (*models.PinMessage, error) {
+	db := psql.DBContext(ctx)
+
+	room, err := r.getRoom(ctx, roomID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !r.hasPermission(room, currentUser) {
+		return nil, errs.AccessDeniedError().Msg("you do not have permission to this room")
+	}
+
+	msg, err := r.messageService.getMessage(db, messageID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	pinMessage := models.PinMessage{
+		MessageID: msg.ID,
+		Content:   msg.Content,
+		Type:      msg.Type,
+		PinDate:   time.Now(),
+	}
+
+	for _, pinMsg := range room.PinMessages {
+		if pinMsg.MessageID == msg.ID {
+			return nil, errs.BadRequestErr().Msg("message already pined")
+		}
+	}
+
+	room.PinMessages = append(room.PinMessages, pinMessage)
+
+	tx := db.Begin()
+
+	if err := tx.Model(&models.Room{}).
+		Where("id = ?", room.ID).
+		UpdateColumn("pin_messages", room.PinMessages).Error; err != nil {
+		tx.Rollback()
+		return nil, errs.InternalServerErr().WithError(err)
+	}
+
+	if err := tx.Model(&models.Message{}).
+		Where("id = ?", msg.ID).
+		UpdateColumn("is_pin", true).Error; err != nil {
+		tx.Rollback()
+		return nil, errs.InternalServerErr().WithError(err)
+	}
+
+	tx.Commit()
+
+	r.DeleteCache(roomID)
+	_ = r.messageService.DeleteCache(msg.ID)
+	_ = r.messageService.DeleteRoomMessagesCache(room.ID)
+
+	return &pinMessage, nil
+}
+
+func (r *RoomService) DeletePinMessage(ctx context.Context, roomID, messageID uuid.UUID, currentUser *sharedModels.User) error {
+	db := psql.DBContext(ctx)
+
+	room, err := r.getRoom(ctx, roomID)
+	if err != nil {
+		return err
+	}
+
+	if !r.hasPermission(room, currentUser) {
+		return errs.AccessDeniedError().Msg("you do not have permission to this room")
+	}
+
+	msg, err := r.messageService.getMessage(db, messageID)
+
+	if err != nil {
+		return err
+	}
+
+	if msg.IsPin {
+		return errs.BadRequestErr().Msg("message is not pined")
+	}
+
+	for i, pinMsg := range room.PinMessages {
+		if pinMsg.MessageID == msg.ID {
+			room.PinMessages = sharedUtil.ArrayRemoveIndex(room.PinMessages, i)
+			break
+		}
+	}
+	tx := db.Begin()
+
+	if err := tx.Model(&models.Room{}).
+		Where("id = ?", room.ID).
+		UpdateColumn("pin_messages", room.PinMessages).Error; err != nil {
+		tx.Rollback()
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	if err := tx.Model(&models.Message{}).
+		Where("id = ?", msg.ID).
+		UpdateColumn("is_pin", false).Error; err != nil {
+		tx.Rollback()
+		return errs.InternalServerErr().WithError(err)
+	}
+
+	tx.Commit()
+
+	r.DeleteCache(roomID)
+	_ = r.messageService.DeleteCache(msg.ID)
+	_ = r.messageService.DeleteRoomMessagesCache(room.ID)
+
+	return nil
+}
+
 func (r *RoomService) hasPermission(room *appModels.RoomOutPutModel, user *sharedModels.User) bool {
 	if user.IsAdmin() {
 		return true
@@ -439,6 +553,7 @@ func (r *RoomService) setRoomCache(ctx context.Context, id uuid.UUID) (*appModel
 		CreatedByID: dbRoom.CreatedByID,
 		Avatar:      util.FilePathPrefix(dbRoom.Avatar),
 		Users:       make([]appModels.RoomUserOutPutModel, len(dbRoom.Users)),
+		PinMessages: dbRoom.PinMessages,
 	}
 
 	for i, userRoom := range dbRoom.Users {

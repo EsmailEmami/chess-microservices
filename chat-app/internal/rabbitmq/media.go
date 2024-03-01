@@ -40,7 +40,11 @@ func consumeMediaRoomAvatarUpload() {
 		logging.FatalE("failed to consume 'media_chat_room_avatar_upload' queue", err)
 	}
 
-	roomService := service.NewRoomService(redis.GetConnection())
+	var (
+		cache          = redis.GetConnection()
+		messageService = service.NewMessageService(cache)
+		roomService    = service.NewRoomService(cache, messageService)
+	)
 
 	for msg := range messageBus {
 		logging.Debug("room avatar upload message received")

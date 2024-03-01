@@ -11,7 +11,11 @@ import (
 )
 
 func Run() {
-	roomService := service.NewRoomService(redis.GetConnection())
+	var (
+		cache          = redis.GetConnection()
+		messageService = service.NewMessageService(cache)
+		roomService    = service.NewRoomService(cache, messageService)
+	)
 
 	initializeRooms()
 
@@ -97,6 +101,16 @@ func runPublicChatRoom(roomService *service.RoomService) {
 			if ok {
 				room.IsTyping(req)
 			}
+		case req := <-websocket.PublicRoomPinMessageCh:
+			room, ok := publicRooms[req.Data.RoomID]
+			if ok {
+				room.PinMessage(req)
+			}
+		case req := <-websocket.PublicRoomDeletePinMessageCh:
+			room, ok := publicRooms[req.Data.RoomID]
+			if ok {
+				room.DeletePinMessage(req)
+			}
 		}
 	}
 }
@@ -149,6 +163,16 @@ func runPrivateChatRoom(roomService *service.RoomService) {
 			room, ok := privateRooms[req.Data.RoomID]
 			if ok {
 				room.IsTyping(req)
+			}
+		case req := <-websocket.PrivateRoomPinMessageCh:
+			room, ok := privateRooms[req.Data.RoomID]
+			if ok {
+				room.PinMessage(req)
+			}
+		case req := <-websocket.PrivateRoomDeletePinMessageCh:
+			room, ok := privateRooms[req.Data.RoomID]
+			if ok {
+				room.DeletePinMessage(req)
 			}
 		}
 	}

@@ -5,13 +5,15 @@ import (
 )
 
 var (
-	PrivateRoomRegisterCh      = make(chan *websocket.Client, 256)
-	PrivateRoomUnregisterCh    = make(chan *websocket.Client, 256)
-	PrivateRoomNewMessageCh    = make(chan *websocket.ClientMessage[NewMessageRequest], 256)
-	PrivateRoomEditMessageCh   = make(chan *websocket.ClientMessage[EditMessageRequest], 256)
-	PrivateRoomDeleteMessageCh = make(chan *websocket.ClientMessage[DeleteMessageRequest], 256)
-	PrivateRoomSeenMessageCh   = make(chan *websocket.ClientMessage[SeenMessageRequest], 256)
-	PrivateRoomIsTypingCh      = make(chan *websocket.ClientMessage[IsTypingRequest], 256)
+	PrivateRoomRegisterCh         = make(chan *websocket.Client, 256)
+	PrivateRoomUnregisterCh       = make(chan *websocket.Client, 256)
+	PrivateRoomNewMessageCh       = make(chan *websocket.ClientMessage[NewMessageRequest], 256)
+	PrivateRoomEditMessageCh      = make(chan *websocket.ClientMessage[EditMessageRequest], 256)
+	PrivateRoomDeleteMessageCh    = make(chan *websocket.ClientMessage[DeleteMessageRequest], 256)
+	PrivateRoomSeenMessageCh      = make(chan *websocket.ClientMessage[SeenMessageRequest], 256)
+	PrivateRoomIsTypingCh         = make(chan *websocket.ClientMessage[IsTypingRequest], 256)
+	PrivateRoomPinMessageCh       = make(chan *websocket.ClientMessage[PinMessageRequest], 256)
+	PrivateRoomDeletePinMessageCh = make(chan *websocket.ClientMessage[PinMessageRequest], 256)
 )
 
 func PrivateChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
@@ -52,6 +54,20 @@ func PrivateChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
 		}
 
 		PrivateRoomIsTypingCh <- websocket.NewClientMessage(c, req)
+	case PinMessage:
+		var req PinMessageRequest
+		if !c.Unmarshal(msg.Content, &req) {
+			return
+		}
+
+		PrivateRoomPinMessageCh <- websocket.NewClientMessage(c, req)
+	case DeletePinMessage:
+		var req PinMessageRequest
+		if !c.Unmarshal(msg.Content, &req) {
+			return
+		}
+
+		PrivateRoomDeletePinMessageCh <- websocket.NewClientMessage(c, req)
 	}
 }
 

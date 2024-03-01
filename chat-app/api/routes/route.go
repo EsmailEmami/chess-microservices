@@ -11,7 +11,11 @@ func Initialize(r *gin.Engine) {
 	route := r.Group("api/v1")
 	route.Use(middleware.Authorization())
 
-	roomService := service.NewRoomService(redis.GetConnection())
+	var (
+		cache          = redis.GetConnection()
+		messageService = service.NewMessageService(cache)
+		roomService    = service.NewRoomService(cache, messageService)
+	)
 
 	roomRoutes(route, roomService)
 }

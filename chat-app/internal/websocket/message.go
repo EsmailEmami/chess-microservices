@@ -21,6 +21,8 @@ const (
 	WatchRoom          = "watch-room"
 	DeletetWatch       = "delete-watch"
 	IsTyping           = "is-typing"
+	PinMessage         = "pin-message"
+	DeletePinMessage   = "delete-pin-message"
 )
 
 type NewMessageRequest struct {
@@ -52,4 +54,9 @@ type RoomRequest struct {
 
 type IsTypingRequest struct {
 	RoomID uuid.UUID `json:"roomId"`
+}
+
+type PinMessageRequest struct {
+	RoomID    uuid.UUID `json:"roomId"`
+	MessageID uuid.UUID `json:"messageId"`
 }

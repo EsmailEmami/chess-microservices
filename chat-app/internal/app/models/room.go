@@ -69,6 +69,7 @@ type RoomOutPutModel struct {
 	IsPrivate   bool                  `json:"isPrivate"`
 	Avatar      string                `json:"avatar"`
 	Users       []RoomUserOutPutModel `json:"users"`
+	PinMessages models.PinMessages    `json:"pinMessages"`
 }
 
 type RoomUserOutPutModel struct {

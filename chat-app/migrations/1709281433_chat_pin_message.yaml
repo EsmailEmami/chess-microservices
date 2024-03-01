@@ -1,0 +1,14 @@
+---
+up: |
+  ALTER TABLE "chat"."message"
+    ADD COLUMN "is_pin" BOOLEAN NOT NULL DEFAULT FALSE;
+
+  ALTER TABLE "chat"."room"
+    ADD COLUMN "pin_messages" JSONB NULL;
+
+down: |
+  ALTER TABLE "chat"."message"
+    DROP COLUMN "is_pin";
+
+  ALTER TABLE "chat"."room"
+    DROP COLUMN "pin_messages";

@@ -16,6 +16,7 @@ type Message struct {
 	IsEdited  bool       `gorm:"column:is_edited" json:"isEdited"`
 	IsSeen    bool       `gorm:"column:is_seen" json:"isSeen"`
 	Type      string     `gorm:"column:type" json:"type"`
+	IsPin     bool       `gorm:"column:is_pin" json:"isPin"`
 }
 
 func (Message) TableName() string {

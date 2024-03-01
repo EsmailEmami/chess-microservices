@@ -34,7 +34,7 @@ func NewChatRoom(roomID uuid.UUID, isPublic bool, wss sharedWebsocket.Server) *C
 	var (
 		redisCache     = redis.GetConnection()
 		messageService = service.NewMessageService(redisCache)
-		roomService    = service.NewRoomService(redisCache)
+		roomService    = service.NewRoomService(redisCache, messageService)
 	)
 
 	return &ChatRoom{
@@ -415,6 +415,50 @@ func (g *ChatRoom) SendFileMessage(req *rabbitmq.RoomFileMessage) {
 			g.wss.SendMessageToClient(client.SessionID, websocket.NewMessage, &RoomMessage{
 				RoomID: g.roomID,
 				Data:   msg,
+			})
+		}
+	}
+}
+
+func (g *ChatRoom) PinMessage(req *sharedWebsocket.ClientMessage[websocket.PinMessageRequest]) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	pinMsg, err := g.roomService.PinMessage(req.Ctx, g.roomID, req.Data.MessageID, req.User)
+
+	if err != nil {
+		g.wss.SendErrorMessageToClient(req.ClientID, err.Error())
+	}
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.PinMessage, &RoomMessage{
+				RoomID: g.roomID,
+				Data:   pinMsg,
+			})
+		}
+	}
+}
+
+func (g *ChatRoom) DeletePinMessage(req *sharedWebsocket.ClientMessage[websocket.PinMessageRequest]) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	err := g.roomService.DeletePinMessage(req.Ctx, g.roomID, req.Data.MessageID, req.User)
+
+	if err != nil {
+		g.wss.SendErrorMessageToClient(req.ClientID, err.Error())
+	}
+
+	for _, clients := range g.connections {
+		for _, client := range clients {
+			g.wss.SendMessageToClient(client.SessionID, websocket.PinMessage, &RoomMessage{
+				RoomID: g.roomID,
+				Data: struct {
+					MessageID uuid.UUID `json:"messageId"`
+				}{
+					MessageID: req.Data.MessageID,
+				},
 			})
 		}
 	}

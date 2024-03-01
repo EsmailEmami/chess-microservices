@@ -5,14 +5,16 @@ import (
 )
 
 var (
-	PublicRoomRegisterCh      = make(chan *websocket.Client, 256)
-	PublicRoomUnregisterCh    = make(chan *websocket.Client, 256)
-	PublicRoomNewMessageCh    = make(chan *websocket.ClientMessage[NewMessageRequest], 256)
-	PublicRoomEditMessageCh   = make(chan *websocket.ClientMessage[EditMessageRequest], 256)
-	PublicRoomDeleteMessageCh = make(chan *websocket.ClientMessage[DeleteMessageRequest], 256)
-	PublicRoomWatchCh         = make(chan *RoomRequest, 256)
-	PublicRoomDeleteWatchCh   = make(chan *RoomRequest, 256)
-	PublicRoomIsTypingCh      = make(chan *websocket.ClientMessage[IsTypingRequest], 256)
+	PublicRoomRegisterCh         = make(chan *websocket.Client, 256)
+	PublicRoomUnregisterCh       = make(chan *websocket.Client, 256)
+	PublicRoomNewMessageCh       = make(chan *websocket.ClientMessage[NewMessageRequest], 256)
+	PublicRoomEditMessageCh      = make(chan *websocket.ClientMessage[EditMessageRequest], 256)
+	PublicRoomDeleteMessageCh    = make(chan *websocket.ClientMessage[DeleteMessageRequest], 256)
+	PublicRoomWatchCh            = make(chan *RoomRequest, 256)
+	PublicRoomDeleteWatchCh      = make(chan *RoomRequest, 256)
+	PublicRoomIsTypingCh         = make(chan *websocket.ClientMessage[IsTypingRequest], 256)
+	PublicRoomPinMessageCh       = make(chan *websocket.ClientMessage[PinMessageRequest], 256)
+	PublicRoomDeletePinMessageCh = make(chan *websocket.ClientMessage[PinMessageRequest], 256)
 )
 
 func PublicChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
@@ -63,6 +65,20 @@ func PublicChatRoomOnMessage(c *websocket.Client, msg *websocket.Message) {
 		}
 
 		PublicRoomIsTypingCh <- websocket.NewClientMessage(c, req)
+	case PinMessage:
+		var req PinMessageRequest
+		if !c.Unmarshal(msg.Content, &req) {
+			return
+		}
+
+		PublicRoomPinMessageCh <- websocket.NewClientMessage(c, req)
+	case DeletePinMessage:
+		var req PinMessageRequest
+		if !c.Unmarshal(msg.Content, &req) {
+			return
+		}
+
+		PublicRoomDeletePinMessageCh <- websocket.NewClientMessage(c, req)
 	}
 }
 

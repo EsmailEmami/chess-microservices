@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/esmailemami/chess/shared/models"
 	"github.com/google/uuid"
 )
 
@@ -44,6 +45,7 @@ type ClientMessage[T any] struct {
 	UserID   uuid.UUID
 	Ctx      context.Context
 	Data     T
+	User     *models.User
 }
 
 func NewClientMessage[T any](c *Client, data T) *ClientMessage[T] {
@@ -52,5 +54,6 @@ func NewClientMessage[T any](c *Client, data T) *ClientMessage[T] {
 		UserID:   c.UserID,
 		Ctx:      c.Context,
 		Data:     data,
+		User:     c.User,
 	}
 }

@@ -29,6 +29,11 @@ func NewMessageService(cache *redis.Redis) *MessageService {
 	}
 }
 
+func (m *MessageService) Get(ctx context.Context, id uuid.UUID) (*appModels.MessageOutPutDto, error) {
+	db := psql.DBContext(ctx)
+	return m.getMessage(db, id)
+}
+
 func (m *MessageService) GetLastMessages(ctx context.Context, roomID uuid.UUID) ([]appModels.MessageOutPutDto, error) {
 	db := psql.DBContext(ctx)
 
@@ -249,7 +254,7 @@ func (m *MessageService) SeenMessage(ctx context.Context, id, roomID uuid.UUID) 
 		return err
 	}
 
-	if err := tx.Model(&models.Message{}).Where("room_id = ? AND is_seen = ? AND created_at <= ", roomID, false, dbMsg.CreatedAt).UpdateColumn("is_seen", true).Error; err != nil {
+	if err := tx.Model(&models.Message{}).Where("room_id = ? AND is_seen = ? AND created_at <= ?", roomID, false, dbMsg.CreatedAt).UpdateColumn("is_seen", true).Error; err != nil {
 		tx.Rollback()
 		return errs.InternalServerErr().WithError(err)
 	}
@@ -271,6 +276,14 @@ func (m *MessageService) SeenMessage(ctx context.Context, id, roomID uuid.UUID) 
 	return nil
 }
 
+func (m *MessageService) DeleteCache(id uuid.UUID) error {
+	return m.cache.Delete(m.messagesCacheKey(id))
+}
+
+func (m *MessageService) DeleteRoomMessagesCache(roomID uuid.UUID) error {
+	return m.cache.Delete(m.roomMessagesCacheKey(roomID))
+}
+
 func (m *MessageService) messageQry(db *gorm.DB) *gorm.DB {
 	return db.Table("chat.message m").
 		Joins("INNER JOIN public.user u ON u.id = m.created_by_id").
@@ -278,7 +291,7 @@ func (m *MessageService) messageQry(db *gorm.DB) *gorm.DB {
 		Joins("LEFT JOIN public.user ur ON ur.id = rm.created_by_id").
 		Order("m.created_at ASC").
 		Where("m.deleted_at IS NULL").
-		Select("m.id, m.created_at, m.content, m.created_by_id as user_id, m.is_edited, m.is_seen, u.first_name, u.last_name, m.reply_to_id, rm.content as reply_content, ur.first_name as reply_first_name, ur.last_name as reply_last_name, m.type")
+		Select("m.id, m.created_at, m.content, m.is_pin, m.created_by_id as user_id, m.is_edited, m.is_seen, u.first_name, u.last_name, m.reply_to_id, rm.content as reply_content, ur.first_name as reply_first_name, ur.last_name as reply_last_name, m.type")
 }
 
 func (m *MessageService) getMessage(db *gorm.DB, id uuid.UUID) (*appModels.MessageOutPutDto, error) {
