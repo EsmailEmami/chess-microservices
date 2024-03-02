@@ -61,7 +61,7 @@
         },
         {
           "path": "/uploads/*",
-          "methods": ["GET"]
+          "methods": ["GET","HEAD"]
         }
       ]
     }

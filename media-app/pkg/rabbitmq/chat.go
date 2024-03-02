@@ -45,13 +45,13 @@ type roomProfileMessage struct {
 	ProfilePath string    `json:"profilePath"`
 }
 
-func PublishRoomFileMessage(ctx context.Context, roomID, messageID, userID uuid.UUID, filePath, fileType string) error {
+func PublishRoomFileMessage(ctx context.Context, roomID, messageID, userID uuid.UUID, fileID string, fileType string) error {
 	body := &roomFileMessage{
 		RoomID:    roomID,
 		UserID:    userID,
 		MessageID: messageID,
 		Type:      fileType,
-		File:      filePath,
+		File:      fileID,
 	}
 
 	return amqp.PublishMessage(ctx, chatExchange, "media_chat.room.message.file.upload", &rabbitmq.Message{

@@ -27,11 +27,11 @@ func NewFriendHandler(friendService *service.FriendService) *FriendHandler {
 // @Produce json
 // @Security Bearer
 // @Param friendId   path  string  true  "friend id"
-// @Success 200 {object} handler.Response[uuid.UUID]
+// @Success 200 {object} handler.JSONResponse[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /friend/make/{friendId} [post]
-func (h *FriendHandler) MakeFriend(ctx *gin.Context, friendID uuid.UUID) (*handler.Response[uuid.UUID], error) {
+func (h *FriendHandler) MakeFriend(ctx *gin.Context, friendID uuid.UUID) (handler.Response, error) {
 	currentUser := h.GetUser(ctx)
 	if currentUser == nil {
 		return nil, errs.UnAuthorizedErr()
@@ -52,11 +52,11 @@ func (h *FriendHandler) MakeFriend(ctx *gin.Context, friendID uuid.UUID) (*handl
 // @Produce json
 // @Security Bearer
 // @Param friendId   path  string  true  "friend id"
-// @Success 200 {object} handler.Response[bool]
+// @Success 200 {object} handler.JSONResponse[bool]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /friend/remove/{friendId} [post]
-func (h *FriendHandler) RemoveFriend(ctx *gin.Context, friendID uuid.UUID) (*handler.Response[bool], error) {
+func (h *FriendHandler) RemoveFriend(ctx *gin.Context, friendID uuid.UUID) (handler.Response, error) {
 	currentUser := h.GetUser(ctx)
 	if currentUser == nil {
 		return nil, errs.UnAuthorizedErr()
@@ -77,11 +77,11 @@ func (h *FriendHandler) RemoveFriend(ctx *gin.Context, friendID uuid.UUID) (*han
 // @Produce json
 // @Security Bearer
 // @Param searchTern   query  string  false  "search term"
-// @Success 200 {object} handler.Response[[]models.FriendOutPutModel]
+// @Success 200 {object} handler.JSONResponse[[]models.FriendOutPutModel]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /friend [get]
-func (h *FriendHandler) GetFriends(ctx *gin.Context, params models.FriendQueryParams) (*handler.Response[[]models.FriendOutPutModel], error) {
+func (h *FriendHandler) GetFriends(ctx *gin.Context, params models.FriendQueryParams) (handler.Response, error) {
 	currentUser := h.GetUser(ctx)
 	if currentUser == nil {
 		return nil, errs.UnAuthorizedErr()

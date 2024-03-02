@@ -32,16 +32,16 @@ func NewRoomHandler(roomService *service.RoomService) *RoomHandler {
 // @Param page  query  string  false  "page size"
 // @Param limit  query  string  false  "length of records to show"
 // @Param searchTerm  query  string  false  "search for item"
-// @Success 200 {object} handler.Response[handler.ListResponse[models.RoomsOutPutModel]]
+// @Success 200 {object} handler.JSONResponse[handler.ListResponse[models.RoomsOutPutModel]]
 // @Router /room [get]
-func (r *RoomHandler) GetRooms(ctx *gin.Context, params models.RoomQueryParams) (*handler.Response[handler.ListResponse[models.RoomsOutPutModel]], error) {
+func (r *RoomHandler) GetRooms(ctx *gin.Context, params models.RoomQueryParams) (handler.Response, error) {
 	rooms, totalRecords, err := r.roomService.GetRooms(ctx, &params)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return handler.ListOK[models.RoomsOutPutModel](params.Page, params.Limit, totalRecords, rooms), nil
+	return handler.ListOK(params.Page, params.Limit, totalRecords, rooms), nil
 }
 
 // CreatePrivateRoom godoc
@@ -50,11 +50,11 @@ func (r *RoomHandler) GetRooms(ctx *gin.Context, params models.RoomQueryParams) 
 // @Produce json
 // @Security Bearer
 // @Param input   body  models.CreatePrivateRoomInputModel  true  "input model"
-// @Success 200 {object} handler.Response[uuid.UUID]
+// @Success 200 {object} handler.JSONResponse[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /room/private [post]
-func (r *RoomHandler) CreatePrivateRoom(ctx *gin.Context, req models.CreatePrivateRoomInputModel) (*handler.Response[uuid.UUID], error) {
+func (r *RoomHandler) CreatePrivateRoom(ctx *gin.Context, req models.CreatePrivateRoomInputModel) (handler.Response, error) {
 	if err := req.Validate(); err != nil {
 		return nil, errs.ValidationErr(err)
 	}
@@ -83,11 +83,11 @@ func (r *RoomHandler) CreatePrivateRoom(ctx *gin.Context, req models.CreatePriva
 // @Produce json
 // @Security Bearer
 // @Param input   body  models.CreatePublicRoomInputModel  true  "input model"
-// @Success 200 {object} handler.Response[uuid.UUID]
+// @Success 200 {object} handler.JSONResponse[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /room/public [post]
-func (r *RoomHandler) CreatePublicRoom(ctx *gin.Context, req models.CreatePublicRoomInputModel) (*handler.Response[uuid.UUID], error) {
+func (r *RoomHandler) CreatePublicRoom(ctx *gin.Context, req models.CreatePublicRoomInputModel) (handler.Response, error) {
 	if err := req.Validate(); err != nil {
 		return nil, errs.ValidationErr(err)
 	}
@@ -118,11 +118,11 @@ func (r *RoomHandler) CreatePublicRoom(ctx *gin.Context, req models.CreatePublic
 // @Produce json
 // @Security Bearer
 // @Param id   path  string  true  "id"
-// @Success 200 {object} handler.Response[uuid.UUID]
+// @Success 200 {object} handler.JSONResponse[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /room/join/{id} [post]
-func (r *RoomHandler) JoinRoom(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
+func (r *RoomHandler) JoinRoom(ctx *gin.Context, id uuid.UUID) (handler.Response, error) {
 	currentUser := r.GetUser(ctx)
 	if currentUser == nil {
 		return nil, errs.UnAuthorizedErr()
@@ -146,11 +146,11 @@ func (r *RoomHandler) JoinRoom(ctx *gin.Context, id uuid.UUID) (*handler.Respons
 // @Produce json
 // @Security Bearer
 // @Param id   path  string  true  "id"
-// @Success 200 {object} handler.Response[uuid.UUID]
+// @Success 200 {object} handler.JSONResponse[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /room/left/{id} [post]
-func (r *RoomHandler) LeftRoom(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
+func (r *RoomHandler) LeftRoom(ctx *gin.Context, id uuid.UUID) (handler.Response, error) {
 	currentUser := r.GetUser(ctx)
 	if currentUser == nil {
 		return nil, errs.UnAuthorizedErr()
@@ -174,11 +174,11 @@ func (r *RoomHandler) LeftRoom(ctx *gin.Context, id uuid.UUID) (*handler.Respons
 // @Produce json
 // @Security Bearer
 // @Param id   path  string  true  "id"
-// @Success 200 {object} handler.Response[uuid.UUID]
+// @Success 200 {object} handler.JSONResponse[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /room/delete/{id} [post]
-func (r *RoomHandler) DeleteRoom(ctx *gin.Context, id uuid.UUID) (*handler.Response[bool], error) {
+func (r *RoomHandler) DeleteRoom(ctx *gin.Context, id uuid.UUID) (handler.Response, error) {
 	user := r.GetUser(ctx)
 	if user == nil {
 		return nil, errs.UnAuthorizedErr()
@@ -203,11 +203,11 @@ func (r *RoomHandler) DeleteRoom(ctx *gin.Context, id uuid.UUID) (*handler.Respo
 // @Security Bearer
 // @Param id   path  string  true  "id"
 // @Param input   body  models.EditRoomModel  true  "input model"
-// @Success 200 {object} handler.Response[bool]
+// @Success 200 {object} handler.JSONResponse[bool]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /room/edit/{id} [post]
-func (r *RoomHandler) EditRoom(ctx *gin.Context, id uuid.UUID, req models.EditRoomModel) (*handler.Response[bool], error) {
+func (r *RoomHandler) EditRoom(ctx *gin.Context, id uuid.UUID, req models.EditRoomModel) (handler.Response, error) {
 	if err := req.Validate(); err != nil {
 		return nil, errs.ValidationErr(err)
 	}

@@ -6,10 +6,28 @@ import (
 	"github.com/esmailemami/chess/shared/consts"
 )
 
-type Response[T any] struct {
-	Message string `json:"message"`
-	Status  int    `json:"status"`
-	Data    *T     `json:"data"`
+type Response interface {
+	Status() int
+	Message() string
+	Result() any
+}
+
+type JSONResponse[T any] struct {
+	Msg        string `json:"message"`
+	StatusCode int    `json:"status"`
+	Data       *T     `json:"data"`
+}
+
+func (r *JSONResponse[T]) Status() int {
+	return r.StatusCode
+}
+
+func (r *JSONResponse[T]) Message() string {
+	return r.Msg
+}
+
+func (r *JSONResponse[T]) Result() any {
+	return r.Data
 }
 
 type ListResponse[T any] struct {
@@ -43,34 +61,34 @@ func NewListResponse[T any](page, limit int, total int64, data []T) *ListRespons
 
 }
 
-func OK[T any](data *T, msg ...string) *Response[T] {
-	r := &Response[T]{
-		Message: consts.OperationDone,
-		Status:  http.StatusOK,
-		Data:    data,
+func OK[T any](data *T, msg ...string) Response {
+	r := &JSONResponse[T]{
+		Msg:        consts.OperationDone,
+		StatusCode: http.StatusOK,
+		Data:       data,
 	}
 
 	if len(msg) > 0 {
-		r.Message = msg[0]
+		r.Msg = msg[0]
 	}
 
 	return r
 }
 
-func OKBool(msg ...string) *Response[bool] {
+func OKBool(msg ...string) Response {
 	ok := true
 	return OK[bool](&ok)
 }
 
-func ListOK[T any](page, limit int, total int64, data []T, msg ...string) *Response[ListResponse[T]] {
-	r := &Response[ListResponse[T]]{
-		Message: consts.OperationDone,
-		Status:  http.StatusOK,
-		Data:    NewListResponse[T](page, limit, total, data),
+func ListOK[T any](page, limit int, total int64, data []T, msg ...string) Response {
+	r := &JSONResponse[ListResponse[T]]{
+		Msg:        consts.OperationDone,
+		StatusCode: http.StatusOK,
+		Data:       NewListResponse[T](page, limit, total, data),
 	}
 
 	if len(msg) > 0 {
-		r.Message = msg[0]
+		r.Msg = msg[0]
 	}
 
 	return r

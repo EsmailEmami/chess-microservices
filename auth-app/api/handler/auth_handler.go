@@ -27,11 +27,11 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 // @Produce json
 // @Security Bearer
 // @Param input   body  models.LoginInputModel  true  "input model"
-// @Success 200 {object} handler.Response[models.LoginOutputModel]
+// @Success 200 {object} handler.JSONResponse[models.LoginOutputModel]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /login [post]
-func (a *AuthHandler) Login(c *gin.Context, req models.LoginInputModel) (*handler.Response[models.LoginOutputModel], error) {
+func (a *AuthHandler) Login(c *gin.Context, req models.LoginInputModel) (handler.Response, error) {
 	// validate the model
 	if err := req.Validate(); err != nil {
 		return nil, errs.ValidationErr(err)
@@ -54,11 +54,11 @@ func (a *AuthHandler) Login(c *gin.Context, req models.LoginInputModel) (*handle
 // @Produce json
 // @Security Bearer
 // @Param input   body  models.RegisterInputModel  true  "input model"
-// @Success 200 {object} handler.Response[uuid.UUID]
+// @Success 200 {object} handler.JSONResponse[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /register [post]
-func (a *AuthHandler) Register(c *gin.Context, req models.RegisterInputModel) (*handler.Response[uuid.UUID], error) {
+func (a *AuthHandler) Register(c *gin.Context, req models.RegisterInputModel) (handler.Response, error) {
 	// validate the model
 	if err := req.Validate(); err != nil {
 		return nil, errs.ValidationErr(err)
@@ -78,11 +78,11 @@ func (a *AuthHandler) Register(c *gin.Context, req models.RegisterInputModel) (*
 // @Accept json
 // @Produce json
 // @Security Bearer
-// @Success 200 {object} handler.Response[bool]
+// @Success 200 {object} handler.JSONResponse[bool]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /logout [post]
-func (a *AuthHandler) Logout(c *gin.Context) (*handler.Response[bool], error) {
+func (a *AuthHandler) Logout(c *gin.Context) (handler.Response, error) {
 	jwtID := c.GetHeader("JwtId")
 
 	if jwtID != "" {

@@ -16,4 +16,6 @@ func attachmentRoutes(r *gin.RouterGroup, attachmentService *service.AttachmentS
 	api.POST("/upload/profile/:id", apiHandler.HandleAPI(attachmentHandler.UploadProile))
 	api.POST("/upload/room/avatar/:id", apiHandler.HandleAPI(attachmentHandler.UploadRoomAvatar))
 	api.POST("/upload/room/file-message/:id", apiHandler.HandleAPI(attachmentHandler.UploadRoomFileMessage))
+
+	api.GET("/download/stream/:id", apiHandler.HandleAPI(attachmentHandler.Stream))
 }

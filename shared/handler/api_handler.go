@@ -67,8 +67,16 @@ func HandleAPI(fn interface{}) gin.HandlerFunc {
 			return
 		}
 
-		resp := result[0].Elem()
-		ctx.JSON(resp.FieldByName("Status").Interface().(int), resp.Interface())
+		if !result[0].IsNil() {
+			resp := result[0].Elem().Interface().(Response)
+			ctx.JSON(resp.Status(),
+				gin.H{
+					"message": resp.Message(),
+					"status":  resp.Status(),
+					"data":    resp.Result(),
+				})
+		}
+
 	}
 }
 

@@ -54,7 +54,7 @@ func (f *FileService) readFile(file *multipart.FileHeader) ([]byte, error) {
 }
 
 func (f *FileService) getDirectory(directory string) (string, error) {
-	path := f.getPath(directory)
+	path := f.GetPath(directory)
 
 	// make sure directory exists
 	err := os.MkdirAll(path, os.ModePerm)
@@ -66,7 +66,7 @@ func (f *FileService) getDirectory(directory string) (string, error) {
 }
 
 func (f *FileService) fileExists(filePath string) bool {
-	path := f.getPath(filePath)
+	path := f.GetPath(filePath)
 	return util.FileExists(path)
 }
 
@@ -88,7 +88,7 @@ func (f *FileService) writeFile(filePath string, b []byte) error {
 	return fileToWrite.Sync()
 }
 
-func (f *FileService) getPath(filePath string) string {
+func (f *FileService) GetPath(filePath string) string {
 	return path.Join(f.directory, filePath)
 }
 
@@ -97,7 +97,7 @@ func (f *FileService) DeleteFile(path string) error {
 		return nil
 	}
 
-	absPath := f.getPath(path)
+	absPath := f.GetPath(path)
 
 	return os.Remove(absPath)
 }

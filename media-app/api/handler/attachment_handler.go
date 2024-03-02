@@ -1,7 +1,11 @@
 package handler
 
 import (
+	"bufio"
 	"context"
+	"fmt"
+	"io"
+	"os"
 
 	"github.com/esmailemami/chess/media/internal/app/service"
 	dbModels "github.com/esmailemami/chess/media/internal/models"
@@ -25,6 +29,59 @@ func NewAttachmentHandler(attachmentService *service.AttachmentService) *Attachm
 	}
 }
 
+// Stream godoc
+// @Tags attachment
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id   path  string  true  "id"
+// @Success 200 {object} handler.JSONResponse[bool]
+// @Failure 400 {object} errs.Error
+// @Failure 422 {object} errs.ValidationError
+// @Router /attachment/download/stream/{id} [GET]
+func (a *AttachmentHandler) Stream(ctx *gin.Context, id uuid.UUID) (handler.Response, error) {
+	filePath, mimeType, err := a.attachmentService.GetFileInfo(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return nil, errs.NotFoundErr().Msg("file not found").WithError(err)
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, errs.NotFoundErr().Msg("file not found").WithError(err)
+	}
+	defer file.Close()
+
+	ctx.Writer.Header().Set("Content-Type", mimeType)
+	ctx.Writer.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
+
+	bufferedWriter := bufio.NewWriter(ctx.Writer)
+	defer bufferedWriter.Flush()
+
+	const chunkSize = 10 * 1024
+	buffer := make([]byte, chunkSize)
+	for {
+		n, err := file.Read(buffer)
+		if err != nil {
+			break
+		}
+		_, err = bufferedWriter.Write(buffer[:n])
+		if err != nil {
+			break
+		}
+	}
+
+	if err != nil && err != io.EOF {
+		return nil, errs.InternalServerErr().Msg("Failed to stream file content to response").WithError(err)
+	}
+
+	return nil, nil
+}
+
 // UploadProile godoc
 // @Tags attachment
 // @Accept json
@@ -32,11 +89,11 @@ func NewAttachmentHandler(attachmentService *service.AttachmentService) *Attachm
 // @Security Bearer
 // @Param id   path  string  true  "id"
 // @Param file formData file true "Image file to be uploaded"
-// @Success 200 {object} handler.Response[uuid.UUID]
+// @Success 200 {object} handler.JSONResponse[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /attachment/upload/profile/{id} [post]
-func (a *AttachmentHandler) UploadProile(ctx *gin.Context, id uuid.UUID) (*handler.Response[uuid.UUID], error) {
+func (a *AttachmentHandler) UploadProile(ctx *gin.Context, id uuid.UUID) (handler.Response, error) {
 	files, err := a.GetFiles(ctx, handler.TenMB)
 	if err != nil {
 		return nil, err
@@ -65,11 +122,11 @@ func (a *AttachmentHandler) UploadProile(ctx *gin.Context, id uuid.UUID) (*handl
 // @Security Bearer
 // @Param id   path  string  true  "id"
 // @Param file formData file true "Image file to be uploaded"
-// @Success 200 {object} handler.Response[uuid.UUID]
+// @Success 200 {object} handler.JSONResponse[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /attachment/upload/room/avatar/{id} [post]
-func (a *AttachmentHandler) UploadRoomAvatar(ctx *gin.Context, id uuid.UUID) (*handler.Response[uuid.UUID], error) {
+func (a *AttachmentHandler) UploadRoomAvatar(ctx *gin.Context, id uuid.UUID) (handler.Response, error) {
 	files, err := a.GetFiles(ctx, handler.TenMB)
 	if err != nil {
 		return nil, err
@@ -98,11 +155,10 @@ func (a *AttachmentHandler) UploadRoomAvatar(ctx *gin.Context, id uuid.UUID) (*h
 // @Security Bearer
 // @Param id   path  string  true  "id"
 // @Param file formData file true "Image file to be uploaded"
-// @Success 200 {object} handler.Response[uuid.UUID]
 // @Failure 400 {object} errs.Error
 // @Failure 422 {object} errs.ValidationError
 // @Router /attachment/upload/room/file-message/{id} [post]
-func (a *AttachmentHandler) UploadRoomFileMessage(ctx *gin.Context, id uuid.UUID) (*handler.Response[uuid.UUID], error) {
+func (a *AttachmentHandler) UploadRoomFileMessage(ctx *gin.Context, id uuid.UUID) (handler.Response, error) {
 	user := a.GetUser(ctx)
 	if user == nil {
 		return nil, errs.UnAuthorizedErr()
@@ -136,7 +192,7 @@ func (a *AttachmentHandler) UploadRoomFileMessage(ctx *gin.Context, id uuid.UUID
 		fileType = "video"
 	}
 
-	rabbitmq.PublishRoomFileMessage(context.Background(), id, messageID, user.ID, attachment.UploadPath, fileType)
+	rabbitmq.PublishRoomFileMessage(context.Background(), id, messageID, user.ID, attachment.ID.String(), fileType)
 
-	return handler.OK(&attachment.ID), nil
+	return nil, nil
 }

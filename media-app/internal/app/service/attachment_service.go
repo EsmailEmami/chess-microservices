@@ -117,3 +117,15 @@ func (a *AttachmentService) GetCurrentAttachmentID(ctx context.Context, itemID u
 		return &id
 	}()
 }
+
+func (a *AttachmentService) GetFileInfo(ctx context.Context, attachmentID uuid.UUID) (uploadPath, mimeType string, err error) {
+	db := psql.DBContext(ctx)
+
+	var attachment models.Attachment
+
+	if err := db.Model(&models.Attachment{}).First(&attachment, "id = ?", attachmentID).Error; err != nil {
+		return "", "", errs.NotFoundErr().WithError(err)
+	}
+
+	return a.fileService.GetPath(attachment.UploadPath), attachment.MimeType, nil
+}
